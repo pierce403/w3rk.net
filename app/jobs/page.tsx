@@ -1,4 +1,4 @@
-import type { Job } from '../api/jobs/route'
+import type { Job } from '../../lib/data'
 import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'

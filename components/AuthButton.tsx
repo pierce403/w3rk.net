@@ -7,9 +7,10 @@ export default function AuthButton() {
   const { data: session, status } = useSession()
 
   async function login() {
-    if (!window.ethereum) return
-    await window.ethereum.request({ method: 'eth_requestAccounts' })
-    const address = (await window.ethereum.request({ method: 'eth_accounts' }))[0]
+    const { ethereum } = window as any
+    if (!ethereum) return
+    await ethereum.request({ method: 'eth_requestAccounts' })
+    const address = (await ethereum.request({ method: 'eth_accounts' }))[0]
     const nonceRes = await fetch('/api/auth/nonce')
     const { nonce } = await nonceRes.json()
     const message = new SiweMessage({
@@ -21,11 +22,11 @@ export default function AuthButton() {
       chainId: 1,
       nonce,
     })
-    const signature = await window.ethereum.request({
+    const signature = await ethereum.request({
       method: 'personal_sign',
       params: [message.prepareMessage(), address],
     })
-    await signIn('credentials', { message: JSON.stringify(message), signature }, { redirect: false })
+    await signIn('credentials', { message: JSON.stringify(message), signature, redirect: false })
   }
 
   if (status === 'loading') return null
