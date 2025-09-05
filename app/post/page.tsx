@@ -7,9 +7,14 @@ export default function PostJob() {
   const [budget, setBudget] = useState('')
   const [desc, setDesc] = useState('')
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    alert('This is a static starter. Wire this form to your contracts or an API.')
+    await fetch('/api/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, budget, desc }),
+    })
+    window.location.href = '/jobs'
   }
 
   return (
