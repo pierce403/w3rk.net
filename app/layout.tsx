@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Providers from './providers'
-import AuthButton from '../components/AuthButton'
+import QRAuthButton from '../components/QRAuthButton'
 import NetworkIndicator from '../components/NetworkIndicator'
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/about">About</a>
               <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
                 <NetworkIndicator />
-                <AuthButton />
+                <QRAuthButton />
               </div>
             </nav>
           </header>
