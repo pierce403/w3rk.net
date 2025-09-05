@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import Providers from './providers'
 import AuthButton from '../components/AuthButton'
+import NetworkIndicator from '../components/NetworkIndicator'
 
 export const metadata: Metadata = {
   title: 'w3rk.net — Onchain tasking, UBI-ready',
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/skills">Skills</a>
               <a href="/profile">Profile</a>
               <a href="/about">About</a>
-              <AuthButton />
+              <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                <NetworkIndicator />
+                <AuthButton />
+              </div>
             </nav>
           </header>
           <main className="container">{children}</main>
