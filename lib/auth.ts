@@ -1,6 +1,7 @@
 import { AuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { SiweMessage } from 'siwe'
+import { cookies } from 'next/headers'
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -10,6 +11,7 @@ export const authOptions: AuthOptions = {
         message: { label: 'Message', type: 'text' },
         signature: { label: 'Signature', type: 'text' },
       },
+
       async authorize(credentials, req) {
         try {
           const siwe = new SiweMessage(JSON.parse(credentials?.message || '{}'))
