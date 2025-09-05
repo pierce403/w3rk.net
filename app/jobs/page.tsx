@@ -1,8 +1,12 @@
 import type { Job } from '../api/jobs/route'
+import { headers } from 'next/headers'
+
+export const dynamic = 'force-dynamic'
 
 export default async function Jobs() {
-  const base = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
-  const res = await fetch(`${base}/api/jobs`, { cache: 'no-store' })
+  const host = headers().get('host') ?? 'localhost:3000'
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+  const res = await fetch(`${protocol}://${host}/api/jobs`, { cache: 'no-store' })
   const jobs: Job[] = await res.json()
 
   return (
