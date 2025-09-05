@@ -1,5 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import Providers from './providers'
+import AuthButton from '../components/AuthButton'
 
 export const metadata: Metadata = {
   title: 'w3rk.net — Onchain tasking, UBI-ready',
@@ -17,22 +19,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <header className="header">
-          <div className="brand">
-            <span className="brand-dot" />
-            w3rk<span style={{opacity:0.7}}>.net</span>
-          </div>
-          <nav className="nav">
-            <a href="/jobs">Jobs</a>
-            <a href="/post">Post a job</a>
-            <a href="/profile">Profile</a>
-            <a href="/about">About</a>
-          </nav>
-        </header>
-        <main className="container">{children}</main>
-        <footer className="footer small">
-          © {new Date().getFullYear()} w3rk.net — Onchain work, built for Base.
-        </footer>
+        <Providers>
+          <header className="header">
+            <div className="brand">
+              <span className="brand-dot" />
+              w3rk<span style={{opacity:0.7}}>.net</span>
+            </div>
+            <nav className="nav">
+              <a href="/jobs">Jobs</a>
+              <a href="/post">Post a job</a>
+              <a href="/services">Services</a>
+              <a href="/advertise">Advertise</a>
+              <a href="/skills">Skills</a>
+              <a href="/profile">Profile</a>
+              <a href="/about">About</a>
+              <AuthButton />
+            </nav>
+          </header>
+          <main className="container">{children}</main>
+          <footer className="footer small">
+            © {new Date().getFullYear()} w3rk.net — Onchain work, built for Base.
+          </footer>
+        </Providers>
       </body>
     </html>
   )
