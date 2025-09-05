@@ -25,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <nav className="nav">
             <a href="/jobs">Jobs</a>
             <a href="/post">Post a job</a>
+            <a href="/profile">Profile</a>
             <a href="/about">About</a>
           </nav>
         </header>

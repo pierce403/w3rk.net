@@ -12,6 +12,7 @@ export default function Home() {
       <div style={{marginTop: 18}}>
         <a className="btn" href="/post">Post a job</a>
         <a className="btn secondary" href="/jobs">Browse jobs</a>
+        <a className="btn secondary" href="/profile">Profile</a>
       </div>
       <ul style={{marginTop: 22}} className="small">
         <li>Framework: Next.js App Router</li>
