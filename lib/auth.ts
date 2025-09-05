@@ -11,10 +11,17 @@ export const authOptions: AuthOptions = {
         message: { label: 'Message', type: 'text' },
         signature: { label: 'Signature', type: 'text' },
       },
-      async authorize(credentials) {
+
+      async authorize(credentials, req) {
         try {
           const siwe = new SiweMessage(JSON.parse(credentials?.message || '{}'))
-          const nonce = cookies().get('nonce')?.value
+          const cookieHeader =
+            (req as any)?.headers?.get?.('cookie') || (req as any)?.headers?.cookie || ''
+          const nonce = cookieHeader
+            .split(';')
+            .map((c: string) => c.trim())
+            .find((c: string) => c.startsWith('nonce='))
+            ?.split('=')[1]
           const result = await siwe.verify({
             signature: credentials?.signature || '',
             nonce,
