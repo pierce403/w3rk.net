@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 
 export default function PostJob() {
+  const { data: session } = useSession()
   const [title, setTitle] = useState('')
   const [budget, setBudget] = useState('')
   const [desc, setDesc] = useState('')
@@ -15,6 +17,10 @@ export default function PostJob() {
       body: JSON.stringify({ title, budget, desc }),
     })
     window.location.href = '/jobs'
+  }
+
+  if (!session?.address) {
+    return <div className="card"><p>Please sign in to post a job.</p></div>
   }
 
   return (
