@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../lib/auth'
-import { jobs, Job } from '../../../lib/data'
+import { services, Service } from '../../../lib/data'
 
 export async function GET() {
-  return NextResponse.json(jobs)
+  return NextResponse.json(services)
 }
 
 export async function POST(req: Request) {
@@ -13,15 +13,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const data = await req.json()
-  if (!data.title || !data.budget || !data.desc) {
+  if (!data.title || !data.rate || !data.desc) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
-  const job: Job = {
+  const service: Service = {
     id: crypto.randomUUID(),
     title: data.title,
-    budget: data.budget,
+    rate: data.rate,
     desc: data.desc,
+    user: session.address,
   }
-  jobs.push(job)
-  return NextResponse.json(job, { status: 201 })
+  services.push(service)
+  return NextResponse.json(service, { status: 201 })
 }
