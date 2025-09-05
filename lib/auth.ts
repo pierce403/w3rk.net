@@ -1,9 +1,12 @@
 import { AuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { SiweMessage } from 'siwe'
-import { cookies } from 'next/headers'
+import { randomBytes } from 'crypto'
+
+const secret = process.env.NEXTAUTH_SECRET ?? randomBytes(32).toString('hex')
 
 export const authOptions: AuthOptions = {
+  secret,
   providers: [
     CredentialsProvider({
       name: 'Ethereum',
