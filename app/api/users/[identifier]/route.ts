@@ -17,8 +17,13 @@ export async function GET(
 
     // Try to find user by address first (most common case)
     if (identifier.startsWith('0x') && identifier.length === 42) {
-      user = await prisma.user.findUnique({
-        where: { address: identifier.toLowerCase() }
+      user = await prisma.user.findFirst({
+        where: { 
+          address: {
+            equals: identifier,
+            mode: 'insensitive'
+          }
+        }
       })
     } else {
       // If not an address, try to find by ENS/Base name in displayName field
