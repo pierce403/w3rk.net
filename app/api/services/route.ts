@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 import { getAuthenticatedUser } from '../../../lib/apiAuth'
+import { getDisplayName } from '../../../lib/nameResolver'
 
 export async function GET(req: Request) {
   try {
@@ -20,17 +21,21 @@ export async function GET(req: Request) {
       }
     })
     
-    // Transform to match the old API format for compatibility
-    const result = services.map(service => ({
-      id: service.id,
-      title: service.title,
-      rate: service.rate,
-      desc: service.description,
-      user: service.user.address,
-      // Additional data for enhanced features
-      userDisplayName: service.user.displayName,
-      createdAt: service.createdAt,
-      updatedAt: service.updatedAt
+    // Transform with ENS name resolution
+    const result = await Promise.all(services.map(async service => {
+      const displayName = await getDisplayName(service.user.address)
+      return {
+        id: service.id,
+        title: service.title,
+        rate: service.rate,
+        description: service.description,
+        user: {
+          address: service.user.address,
+          displayName: displayName
+        },
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt
+      }
     }))
     
     return NextResponse.json(result)
@@ -87,14 +92,17 @@ export async function POST(req: NextRequest) {
       }
     })
     
-    // Return in old API format for compatibility
+    // Return with ENS name resolution
+    const displayName = await getDisplayName(newService.user.address)
     const result = {
       id: newService.id,
       title: newService.title,
       rate: newService.rate,
-      desc: newService.description,
-      user: newService.user.address,
-      userDisplayName: newService.user.displayName,
+      description: newService.description,
+      user: {
+        address: newService.user.address,
+        displayName: displayName
+      },
       createdAt: newService.createdAt
     }
     

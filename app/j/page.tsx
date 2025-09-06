@@ -7,9 +7,8 @@ interface Job {
   id: string
   title: string
   budget: string
-  desc: string
-  user: string
-  userDisplayName?: string
+  description: string
+  user: { address: string; displayName: string }
   createdAt?: string
 }
 
@@ -67,16 +66,16 @@ export default function Jobs() {
                   Budget: {job.budget} USDC
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1rem' }}>
-                  Posted by: {job.userDisplayName || `${job.user.slice(0, 6)}...${job.user.slice(-4)}`}
+                  Posted by: {job.user.displayName}
                 </div>
-                <p style={{ margin: 0 }}>{job.desc}</p>
+                <p style={{ margin: 0 }}>{job.description}</p>
               </div>
               
               <div style={{ marginLeft: '1rem' }}>
                 <ChatButton
                   jobId={job.id}
                   title={job.title}
-                  ownerAddress={job.user}
+                  ownerAddress={job.user.address}
                   type="job"
                 />
               </div>

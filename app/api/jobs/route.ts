@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 import { getAuthenticatedUser } from '../../../lib/apiAuth'
+import { getDisplayName } from '../../../lib/nameResolver'
 
 export async function GET(req: Request) {
   try {
@@ -20,17 +21,21 @@ export async function GET(req: Request) {
       }
     })
     
-    // Transform to match the old API format for compatibility
-    const result = jobs.map(job => ({
-      id: job.id,
-      title: job.title,
-      budget: job.budget,
-      desc: job.description,
-      // Additional data for enhanced features
-      user: job.user.address,
-      userDisplayName: job.user.displayName,
-      createdAt: job.createdAt,
-      updatedAt: job.updatedAt
+    // Transform with ENS name resolution
+    const result = await Promise.all(jobs.map(async job => {
+      const displayName = await getDisplayName(job.user.address)
+      return {
+        id: job.id,
+        title: job.title,
+        budget: job.budget,
+        description: job.description,
+        user: {
+          address: job.user.address,
+          displayName: displayName
+        },
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt
+      }
     }))
     
     return NextResponse.json(result)
@@ -87,14 +92,17 @@ export async function POST(req: NextRequest) {
       }
     })
     
-    // Return in old API format for compatibility
+    // Return with ENS name resolution
+    const displayName = await getDisplayName(newJob.user.address)
     const result = {
       id: newJob.id,
       title: newJob.title,
       budget: newJob.budget,
-      desc: newJob.description,
-      user: newJob.user.address,
-      userDisplayName: newJob.user.displayName,
+      description: newJob.description,
+      user: {
+        address: newJob.user.address,
+        displayName: displayName
+      },
       createdAt: newJob.createdAt
     }
     

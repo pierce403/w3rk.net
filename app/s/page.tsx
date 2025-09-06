@@ -7,9 +7,8 @@ interface Service {
   id: string
   title: string
   rate: string
-  desc: string
-  user: string
-  userDisplayName?: string
+  description: string
+  user: { address: string; displayName: string }
   createdAt?: string
 }
 
@@ -67,16 +66,16 @@ export default function Services() {
                   Rate: {service.rate} USDC
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1rem' }}>
-                  Provider: {service.userDisplayName || `${service.user.slice(0, 6)}...${service.user.slice(-4)}`}
+                  Provider: {service.user.displayName}
                 </div>
-                <p style={{ margin: 0 }}>{service.desc}</p>
+                <p style={{ margin: 0 }}>{service.description}</p>
               </div>
               
               <div style={{ marginLeft: '1rem' }}>
                 <ChatButton
                   serviceId={service.id}
                   title={service.title}
-                  ownerAddress={service.user}
+                  ownerAddress={service.user.address}
                   type="service"
                 />
               </div>
