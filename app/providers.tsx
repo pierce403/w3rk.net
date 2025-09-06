@@ -14,6 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           theme: 'light',
           accentColor: '#0052ff', // Base blue color
           logo: 'https://w3rk.net/icon.svg',
+          walletList: ['coinbase_wallet'], // Prioritize Coinbase Wallet
         },
         // Supported login methods
         loginMethods: ['wallet'],
@@ -21,6 +22,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         embeddedWallets: {
           createOnLogin: 'all-users',
           requireUserPasswordOnCreate: false,
+        },
+        // Force Coinbase Smart Wallet flow (not browser extension)
+        externalWallets: {
+          coinbaseWallet: {
+            connectionOptions: 'smartWalletOnly',
+          },
         },
         // Default wallet chain for smart wallet creation
         defaultChain: {
