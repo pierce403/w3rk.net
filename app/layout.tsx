@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Providers from './providers'
 import PrivyAuthButton from '../components/PrivyAuthButton'
 import NetworkIndicator from '../components/NetworkIndicator'
+import FarcasterSDK from '../components/FarcasterSDK'
 
 export const metadata: Metadata = {
   title: 'w3rk.net — Onchain tasking, UBI-ready',
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             © {new Date().getFullYear()} w3rk.net — Onchain work, built for Base.
           </footer>
         </Providers>
+        <FarcasterSDK />
       </body>
     </html>
   )

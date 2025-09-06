@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "w3rk.net - Decentralized Tasking",
+    "iconUrl": "https://w3rk.net/icon-192.png",
+    "homeUrl": "https://w3rk.net",
+    "imageUrl": "https://w3rk.net/icon-512.png",
+    "buttonTitle": "Launch w3rk",
+    "splashImageUrl": "https://w3rk.net/icon-512.png",
+    "splashBackgroundColor": "#0052ff"
+  }
+}
