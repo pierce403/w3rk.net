@@ -26,7 +26,6 @@
   "dependencies": {
     "@farcaster/miniapp-sdk": "^0.1.10",
     "@prisma/client": "^6.15.0",
-    "@privy-io/react-auth": "^2.24.0",
     "@vercel/postgres": "^0.10.0",
     "@xmtp/browser-sdk": "^4.1.0",
     "@xmtp/content-type-text": "^2.0.2",
@@ -41,6 +40,7 @@
     "react-dom": "18.3.1",
     "sharp": "^0.34.3",
     "siwe": "^2.1.5",
+    "thirdweb": "^5.105.41",
     "viem": "^2.37.3",
     "workbox-webpack-plugin": "^7.3.0"
   },
