@@ -21,14 +21,14 @@ Enable users to carry their w3rk.net conversations across all XMTP-enabled apps 
 ## 📦 Implementation Status
 
 ### ✅ Completed (Phase 1)
-- [x] Chat authentication fixed (Privy integration)
+- [x] Chat authentication fixed (Thirdweb integration)
 - [x] Database schema with `xmtpId` field prepared
 - [x] XMTP SDK dependencies installed (`@xmtp/browser-sdk`)
 - [x] Basic XMTP client structure in `lib/xmtp.ts`
 - [x] Chat UI works with database-backed messaging
 
 ### 🔄 In Progress (Phase 2)
-- [ ] **XMTP Client Initialization**: Proper setup with Privy wallet signers
+- [ ] **XMTP Client Initialization**: Proper setup with Thirdweb wallet signers
 - [ ] **Conversation Management**: Create/retrieve XMTP conversations for chat rooms
 - [ ] **Message Sync**: Send messages to both database AND XMTP network
 - [ ] **Real-time Updates**: Stream XMTP messages and sync to local state
@@ -71,8 +71,8 @@ interface ChatMessage {
 
 ### XMTP Client Integration
 ```typescript
-// Initialize with Privy wallet signer
-const xmtpClient = await Client.create(privyWalletSigner, {
+// Initialize with Thirdweb wallet signer
+const xmtpClient = await Client.create(thirdwebWalletSigner, {
   env: 'production'
 })
 
@@ -119,7 +119,7 @@ await storeMessage(messageContent, xmtpMessage.id)
 ## 🚀 Rollout Strategy
 
 ### Phase 2A: Basic XMTP (Current Focus)
-- Initialize XMTP client with Privy wallets
+- Initialize XMTP client with Thirdweb wallets
 - Send new messages to both database and XMTP
 - Test with simple 1:1 conversations
 
