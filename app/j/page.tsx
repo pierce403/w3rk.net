@@ -66,7 +66,9 @@ export default function Jobs() {
                   Budget: {job.budget} USDC
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1rem' }}>
-                  Posted by: {job.user.displayName}
+                  Posted by: <a href={`/u/${job.user.address}`} style={{ color: '#0ea5e9', textDecoration: 'none' }}>
+                    {job.user.displayName}
+                  </a>
                 </div>
                 <p style={{ margin: 0 }}>{job.description}</p>
               </div>

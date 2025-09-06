@@ -102,7 +102,9 @@ export default function Home() {
                     {job.description}
                   </p>
                   <div style={{ fontSize: '0.8rem', color: '#888' }}>
-                    by {job.user.displayName}
+                    by <a href={`/u/${job.user.address}`} style={{ color: '#0ea5e9', textDecoration: 'none' }}>
+                      {job.user.displayName}
+                    </a>
                   </div>
                 </div>
               ))}
@@ -140,7 +142,9 @@ export default function Home() {
                     {service.description}
                   </p>
                   <div style={{ fontSize: '0.8rem', color: '#888' }}>
-                    by {service.user.displayName}
+                    by <a href={`/u/${service.user.address}`} style={{ color: '#10b981', textDecoration: 'none' }}>
+                      {service.user.displayName}
+                    </a>
                   </div>
                 </div>
               ))}

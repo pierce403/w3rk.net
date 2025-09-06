@@ -78,7 +78,9 @@ export default function ServicePage() {
             </div>
             
             <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1.5rem' }}>
-              Provider: {service.user.displayName}
+              Provider: <a href={`/u/${service.user.address}`} style={{ color: '#10b981', textDecoration: 'none' }}>
+                {service.user.displayName}
+              </a>
               {service.createdAt && ` • ${new Date(service.createdAt).toLocaleDateString()}`}
             </div>
           </div>

@@ -66,7 +66,9 @@ export default function Services() {
                   Rate: {service.rate} USDC
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1rem' }}>
-                  Provider: {service.user.displayName}
+                  Provider: <a href={`/u/${service.user.address}`} style={{ color: '#10b981', textDecoration: 'none' }}>
+                    {service.user.displayName}
+                  </a>
                 </div>
                 <p style={{ margin: 0 }}>{service.description}</p>
               </div>

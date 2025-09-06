@@ -78,7 +78,9 @@ export default function JobPage() {
             </div>
             
             <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1.5rem' }}>
-              Posted by: {job.user.displayName}
+              Posted by: <a href={`/u/${job.user.address}`} style={{ color: '#0ea5e9', textDecoration: 'none' }}>
+                {job.user.displayName}
+              </a>
               {job.createdAt && ` • ${new Date(job.createdAt).toLocaleDateString()}`}
             </div>
           </div>
