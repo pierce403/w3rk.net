@@ -12,7 +12,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         // Customize Privy's appearance and behavior
         appearance: {
           theme: 'light',
-          accentColor: '#676FFF',
+          accentColor: '#0052ff', // Base blue color
           logo: 'https://w3rk.net/icon.svg',
         },
         // Supported login methods
