@@ -55,6 +55,7 @@ export default function ChatRoomPage() {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [isXMTPEnabled, setIsXMTPEnabled] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function ChatRoomPage() {
       fetchChatRoom()
       fetchMessages()
     }
-  }, [session, status, roomId]) // fetchChatRoom and fetchMessages are stable functions
+  }, [session, status, roomId])
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -96,19 +97,29 @@ export default function ChatRoomPage() {
     }
   }
 
+  // XMTP listener will be implemented in the next phase
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || sending) return
 
     setSending(true)
     try {
+      const messageContent = newMessage.trim()
+      let xmtpId: string | null = null
+
+      // XMTP integration will be implemented in next phase
+      // Currently using database-only messaging
+
+      // Also store in database for persistence and fallback
       const response = await fetch(`/api/chat/rooms/${roomId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: newMessage.trim()
+          content: messageContent,
+          xmtpId // Include XMTP ID for cross-reference
         })
       })
 
@@ -116,6 +127,8 @@ export default function ChatRoomPage() {
         const message = await response.json()
         setMessages(prev => [...prev, message])
         setNewMessage('')
+        
+        console.log(`📨 Message sent via ${xmtpId ? 'XMTP + Database' : 'Database only'}`)
       } else {
         throw new Error('Failed to send message')
       }
