@@ -28,9 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
                     <nav className="nav">
           <a href="/j">Jobs</a>
-          <a href="/post">Post a job</a>
           <a href="/s">Services</a>
-          <a href="/advertise">Advertise</a>
           <a href="/chat">Chat</a>
           <a href="/profile">Profile</a>
           <a href="/u">Users</a>
