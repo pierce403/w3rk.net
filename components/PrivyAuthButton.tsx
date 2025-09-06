@@ -8,33 +8,7 @@ export default function PrivyAuthButton() {
   const { ready, authenticated, user, login, logout } = usePrivy()
   const { displayName } = useENSName(user?.wallet?.address)
 
-  // Set up API interceptor to add wallet address to requests
-  useEffect(() => {
-    if (authenticated && user?.wallet?.address) {
-      const originalFetch = window.fetch
-      
-      window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
-        // Only add auth header for API calls
-        const url = typeof input === 'string' ? input : input.toString()
-        if (url.includes('/api/') && user?.wallet?.address) {
-          const headers = new Headers(init?.headers)
-          headers.set('x-wallet-address', user.wallet.address)
-          
-          return originalFetch(input, {
-            ...init,
-            headers,
-          })
-        }
-        
-        return originalFetch(input, init)
-      }
-      
-      // Cleanup function to restore original fetch
-      return () => {
-        window.fetch = originalFetch
-      }
-    }
-  }, [authenticated, user?.wallet?.address])
+  // Note: API interceptor moved to global AuthProvider
 
   if (!ready) {
     return <button className="btn small" disabled>Loading...</button>

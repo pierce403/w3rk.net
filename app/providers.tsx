@@ -2,6 +2,7 @@
 
 import { PrivyProvider } from '@privy-io/react-auth'
 import { SessionProvider } from 'next-auth/react'
+import AuthProvider from '../components/AuthProvider'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -87,7 +88,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         ]
       }}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </PrivyProvider>
     </SessionProvider>
   )
