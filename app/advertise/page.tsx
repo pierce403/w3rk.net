@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useUnifiedAuth } from '../../hooks/useUnifiedAuth'
 
 export default function Advertise() {
-  const { data: session } = useSession()
+  const { data: session } = useUnifiedAuth()
   const [title, setTitle] = useState('')
   const [rate, setRate] = useState('')
   const [desc, setDesc] = useState('')
@@ -16,7 +16,7 @@ export default function Advertise() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, rate, desc }),
     })
-    window.location.href = '/services'
+    window.location.href = '/s'
   }
 
   if (!session?.address) {

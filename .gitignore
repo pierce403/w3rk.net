@@ -14,3 +14,5 @@ yarn-error.log*
 .env
 .env*.local
 .vercel
+
+/lib/generated/prisma

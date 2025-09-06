@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useUnifiedAuth } from '../../hooks/useUnifiedAuth'
 
 export default function PostJob() {
-  const { data: session } = useSession()
+  const { data: session } = useUnifiedAuth()
   const [title, setTitle] = useState('')
   const [budget, setBudget] = useState('')
   const [desc, setDesc] = useState('')
@@ -16,7 +16,7 @@ export default function PostJob() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, budget, desc }),
     })
-    window.location.href = '/jobs'
+    window.location.href = '/j'
   }
 
   if (!session?.address) {

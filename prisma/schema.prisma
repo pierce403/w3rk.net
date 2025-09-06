@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  address         String   @unique // Ethereum wallet address
+  ensName         String?
+  baseName        String?
+  displayName     String
+  farcasterHandle String?
+  joinedAt        DateTime @default(now())
+  bio             String?
+  
+  // Relations
+  jobs            Job[]
+  services        Service[]
+  skills          Skill[]
+  endorsements    Endorsement[]
+  chatParticipants ChatParticipant[]
+  chatMessages    ChatMessage[]
+
+  @@map("users")
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  budget      String
+  description String   @map("desc")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatRooms   ChatRoom[]
+
+  @@map("jobs")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  rate        String
+  description String   @map("desc")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatRooms   ChatRoom[]
+
+  @@map("services")
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endorsements Endorsement[]
+
+  // Prevent duplicate skills per user
+  @@unique([userId, name])
+  @@map("skills")
+}
+
+model Endorsement {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Relations
+  skillId     String
+  skill       Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  endorserId  String
+  endorser    User   @relation(fields: [endorserId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate endorsements
+  @@unique([skillId, endorserId])
+  @@map("endorsements")
+}
+
+model ChatRoom {
+  id          String   @id @default(cuid())
+  type        String   // "job", "service", "direct"
+  title       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+
+  @@map("chat_rooms")
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  joinedAt  DateTime @default(now())
+  
+  // Relations
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate participants
+  @@unique([chatRoomId, userId])
+  @@map("chat_participants")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  xmtpId    String?  // XMTP message ID for decentralized sync
+  createdAt DateTime @default(now())
+  
+  // Relations
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}

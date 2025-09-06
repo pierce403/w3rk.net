@@ -1,48 +1,51 @@
 'use client'
-
-import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
-import type { Skill } from '../../lib/data'
+import { useUnifiedAuth } from '../../hooks/useUnifiedAuth'
+import { useENSName } from '../../hooks/useENSName'
+import SkillsManager from '../../components/SkillsManager'
 
 export default function Profile() {
-  const { data: session } = useSession()
-  const [skill, setSkill] = useState('')
-  const [skills, setSkills] = useState<Skill[]>([])
+  const { data: session, status } = useUnifiedAuth()
+  const { displayName, isLoading } = useENSName(session?.address)
 
-  useEffect(() => {
-    if (session?.address) {
-      fetch(`/api/skills?user=${session.address}`).then(r => r.json()).then(setSkills)
-    }
-  }, [session])
-
-  async function addSkill(e: React.FormEvent) {
-    e.preventDefault()
-    await fetch('/api/skills', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: skill }),
-    })
-    setSkill('')
-    const res = await fetch(`/api/skills?user=${session?.address}`)
-    setSkills(await res.json())
+  if (status === 'loading' || isLoading) {
+    return (
+      <div className="card">
+        <p>Loading your profile...</p>
+      </div>
+    )
   }
 
   if (!session?.address) {
-    return <div className="card"><p>Please sign in to manage your profile.</p></div>
+    return (
+      <div className="card">
+        <h2>Profile</h2>
+        <p>Please connect your wallet to access your profile.</p>
+      </div>
+    )
   }
 
   return (
-    <div className="card">
-      <h2>Your Profile</h2>
-      <form onSubmit={addSkill} style={{marginTop:12}}>
-        <label>New Skill<br/><input value={skill} onChange={e=>setSkill(e.target.value)} /></label>
-        <button className="btn small" type="submit" style={{marginLeft:8}}>Add</button>
-      </form>
-      <ul style={{marginTop:20}}>
-        {skills.map(s => (
-          <li key={s.name}>{s.name} — {s.endorsements.length} endorsement(s)</li>
-        ))}
-      </ul>
+    <div>
+      <div className="card">
+        <h2>Your Profile</h2>
+        
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <strong>Display Name:</strong> {displayName}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#666' }}>
+            Wallet Address: {session.address}
+          </div>
+        </div>
+
+        <div style={{ padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+          <p style={{ margin: '0', fontSize: '0.9rem', color: '#666' }}>
+            <strong>💡 Tip:</strong> Add your skills below so others can discover your expertise and endorse you!
+          </p>
+        </div>
+        
+        <SkillsManager />
+      </div>
     </div>
   )
 }
