@@ -1,25 +1,15 @@
 {
-  "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
-  },
   "frame": {
+    "name": "W3RK.NET",
     "version": "1",
-    "name": "w3rk.net - Decentralized Tasking",
-    "description": "A decentralized task marketplace with UBI on Base network. Find jobs, offer services, and earn crypto with low fees and smart wallet integration.",
-    "iconUrl": "https://w3rk.net/icon-192.png",
+    "iconUrl": "https://w3rk.net/icon.png",
     "homeUrl": "https://w3rk.net",
-    "imageUrl": "https://w3rk.net/icon-512.png",
-    "buttonTitle": "Launch w3rk",
-    "splashImageUrl": "https://w3rk.net/icon-512.png",
-    "splashBackgroundColor": "#0052ff",
-    "heroImageUrl": "https://w3rk.net/icon-512.png",
-    "tagline": "Decentralized jobs and services on Base",
-    "screenshotUrls": [
-      "https://w3rk.net/icon-512.png"
-    ],
-    "primaryCategory": "productivity",
-    "tags": ["jobs", "services", "base", "crypto", "defi", "web3"]
+    "imageUrl": "https://w3rk.net/image.png",
+    "splashImageUrl": "https://w3rk.net/splash.png",
+    "splashBackgroundColor": "#0B0E11",
+    "webhookUrl": "https://w3rk.net/api/webhook",
+    "primaryCategory": "utility",
+    "subtitle": "Find and post jobs, fast",
+    "description": "W3RK.NET is a community job board that runs on web3. Post tasks, browse open gigs, and connect with workers or requesters in your community."
   }
 }
