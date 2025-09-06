@@ -2,9 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { getUserByName, getUserByAddress, type UserProfile } from '../../../lib/userData'
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth'
 import UserSkills from '../../../components/UserSkills'
+import { getDisplayName } from '../../../lib/nameResolver'
+
+interface UserProfile {
+  id: string
+  address: string
+  displayName: string
+  ensName?: string
+  baseName?: string
+  farcasterHandle?: string
+  bio?: string
+  createdAt: string
+}
 
 export default function UserProfilePage() {
   const params = useParams()
@@ -15,28 +26,48 @@ export default function UserProfilePage() {
   const [showNamePrompt, setShowNamePrompt] = useState(false)
 
   useEffect(() => {
-    if (username) {
-      // Try to find user by name first, then by address
-      let foundUser = getUserByName(username)
-      if (!foundUser && username.startsWith('0x')) {
-        foundUser = getUserByAddress(username)
-      }
-      
-      setUser(foundUser || null)
-      
-      // Check if current user is viewing their own profile
-      if (session?.address && foundUser) {
-        setIsOwner(session.address.toLowerCase() === foundUser.address.toLowerCase())
-      }
-      
-      // Show name prompt if user is viewing their own profile and has no ENS/Base name
-      if (session?.address && foundUser && 
-          session.address.toLowerCase() === foundUser.address.toLowerCase() &&
-          !foundUser.ensName && !foundUser.baseName) {
-        setShowNamePrompt(true)
-      }
-    }
+    fetchUser()
   }, [username, session])
+
+  const fetchUser = async () => {
+    if (!username) return
+    
+    try {
+      let searchAddress = username
+      
+      // If username looks like an ENS name, resolve it to an address first
+      if (username.includes('.eth') || username.includes('.base.eth')) {
+        // For now, search by the username directly in case it's stored as displayName
+        // In a full implementation, you'd resolve ENS -> address first
+        searchAddress = username
+      }
+      
+      // Search by address or ENS name
+      const response = await fetch(`/api/users/${encodeURIComponent(searchAddress)}`)
+      
+      if (response.ok) {
+        const foundUser = await response.json()
+        setUser(foundUser)
+        
+        // Check if current user is viewing their own profile
+        if (session?.address && foundUser) {
+          setIsOwner(session.address.toLowerCase() === foundUser.address.toLowerCase())
+        }
+        
+        // Show name prompt if user is viewing their own profile and has no ENS/Base name
+        if (session?.address && foundUser && 
+            session.address.toLowerCase() === foundUser.address.toLowerCase() &&
+            !foundUser.ensName && !foundUser.baseName) {
+          setShowNamePrompt(true)
+        }
+      } else {
+        setUser(null)
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error)
+      setUser(null)
+    }
+  }
 
   if (!user) {
     return (
@@ -107,7 +138,7 @@ export default function UserProfilePage() {
 
         <div style={{ display: 'grid', gap: '0.5rem' }}>
           <div style={{ fontSize: '0.875rem' }}>
-            <strong>Joined:</strong> {user.joinedAt.toLocaleDateString('en-US', { 
+            <strong>Joined:</strong> {new Date(user.createdAt).toLocaleDateString('en-US', { 
               year: 'numeric', 
               month: 'long', 
               day: 'numeric' 
