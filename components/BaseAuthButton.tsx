@@ -60,23 +60,43 @@ export default function BaseAuthButton() {
   }
 
   return (
-    <button 
-      className="btn" 
-      onClick={() => login()}
-      style={{ 
-        backgroundColor: '#0052ff', 
-        color: 'white',
-        border: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        fontSize: '1rem',
-        fontWeight: '600',
-        padding: '0.875rem 1.5rem'
-      }}
-    >
-      <span>🔵</span>
-      Continue with Base (Coinbase)
-    </button>
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <button 
+        className="btn" 
+        onClick={() => login({ loginMethods: ['wallet'] })}
+        style={{ 
+          backgroundColor: '#0052ff', 
+          color: 'white',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '1rem',
+          fontWeight: '600',
+          padding: '0.875rem 1.5rem'
+        }}
+      >
+        <span>🔵</span>
+        Base Wallet
+      </button>
+      <button 
+        className="btn secondary" 
+        onClick={() => login({ loginMethods: ['farcaster'] })}
+        style={{ 
+          backgroundColor: '#8a63d2', 
+          color: 'white',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '1rem',
+          fontWeight: '600',
+          padding: '0.875rem 1.5rem'
+        }}
+      >
+        <span>🟣</span>
+        Farcaster
+      </button>
+    </div>
   )
 }

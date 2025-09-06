@@ -14,16 +14,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           theme: 'light',
           accentColor: '#0052ff', // Base blue color
           logo: 'https://w3rk.net/icon.svg',
-          walletList: ['coinbase_wallet'], // Prioritize Coinbase Wallet
+          walletList: ['coinbase_wallet'], // Prioritize Coinbase - Farcaster is social login
         },
-        // Supported login methods
-        loginMethods: ['wallet'],
+        // Supported login methods - Wallet and Farcaster
+        loginMethods: ['wallet', 'farcaster'],
         // Smart Wallet Configuration - Coinbase Smart Wallet First
         embeddedWallets: {
           createOnLogin: 'all-users',
           requireUserPasswordOnCreate: false,
         },
-        // Force Coinbase Smart Wallet flow (not browser extension)
+        // External wallet configurations
         externalWallets: {
           coinbaseWallet: {
             connectionOptions: 'smartWalletOnly',
