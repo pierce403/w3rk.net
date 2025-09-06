@@ -2,6 +2,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth'
 import { useParams } from 'next/navigation'
+import { useXMTP } from '../../../hooks/useXMTP'
+import { sendXMTPMessage, listenForXMTPMessages } from '../../../lib/xmtp'
 
 interface ChatMessage {
   id: string
@@ -50,12 +52,12 @@ export default function ChatRoomPage() {
   const params = useParams()
   const roomId = params?.roomId as string
   const { data: session, status } = useUnifiedAuth()
+  const { isXMTPReady, xmtpError, isInitializing } = useXMTP()
   const [chatRoom, setChatRoom] = useState<ChatRoom | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [isXMTPEnabled, setIsXMTPEnabled] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -64,6 +66,20 @@ export default function ChatRoomPage() {
       fetchMessages()
     }
   }, [session, status, roomId])
+
+  // Set up XMTP message listener when ready
+  useEffect(() => {
+    if (isXMTPReady && chatRoom && session?.address) {
+      // For now, focus on 1:1 conversations - get the other participant
+      const otherParticipants = chatRoom.participants
+        .map(p => p.user.address)
+        .filter(addr => addr !== session.address)
+      
+      if (otherParticipants.length === 1) {
+        setupXMTPListener(otherParticipants[0])
+      }
+    }
+  }, [isXMTPReady, chatRoom, session?.address])
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -97,7 +113,48 @@ export default function ChatRoomPage() {
     }
   }
 
-  // XMTP listener will be implemented in the next phase
+  // Set up XMTP message listener for real-time cross-app messaging
+  const setupXMTPListener = async (participantAddress: string) => {
+    try {
+      console.log('👂 Setting up XMTP listener for:', participantAddress)
+      
+      await listenForXMTPMessages(participantAddress, (xmtpMessage) => {
+        // Add XMTP message to local state if not already present
+        setMessages(prev => {
+          const exists = prev.some(m => m.xmtpId === xmtpMessage.xmtpId)
+          if (exists) return prev
+          
+          // Convert XMTP message format to our message format
+          const newMsg: ChatMessage = {
+            id: xmtpMessage.id,
+            content: xmtpMessage.content,
+            createdAt: xmtpMessage.sentAt.toISOString(),
+            xmtpId: xmtpMessage.xmtpId,
+            sender: {
+              address: xmtpMessage.senderAddress,
+              displayName: `${xmtpMessage.senderAddress.slice(0, 6)}...${xmtpMessage.senderAddress.slice(-4)}`,
+              ensName: undefined,
+              baseName: undefined
+            }
+          }
+          
+          return [...prev, newMsg]
+        })
+        
+        // Also store in database for persistence
+        fetch(`/api/chat/rooms/${roomId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: xmtpMessage.content,
+            xmtpId: xmtpMessage.xmtpId
+          })
+        }).catch(error => console.error('Failed to store XMTP message in database:', error))
+      })
+    } catch (error) {
+      console.error('Error setting up XMTP listener:', error)
+    }
+  }
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,8 +165,24 @@ export default function ChatRoomPage() {
       const messageContent = newMessage.trim()
       let xmtpId: string | null = null
 
-      // XMTP integration will be implemented in next phase
-      // Currently using database-only messaging
+      // Send via XMTP for cross-app messaging (if available)
+      let xmtpResult = null
+      if (isXMTPReady && chatRoom) {
+        const otherParticipants = chatRoom.participants
+          .map(p => p.user.address)
+          .filter(addr => addr !== session?.address)
+        
+        if (otherParticipants.length === 1) {
+          console.log('📤 Sending message via XMTP...')
+          xmtpResult = await sendXMTPMessage(otherParticipants[0], messageContent)
+          
+          if (xmtpResult.success) {
+            console.log('✅ Message sent via XMTP for cross-app messaging')
+          } else {
+            console.warn('⚠️ XMTP send failed, using database only:', xmtpResult.error)
+          }
+        }
+      }
 
       // Also store in database for persistence and fallback
       const response = await fetch(`/api/chat/rooms/${roomId}/messages`, {
@@ -119,7 +192,7 @@ export default function ChatRoomPage() {
         },
         body: JSON.stringify({
           content: messageContent,
-          xmtpId // Include XMTP ID for cross-reference
+          xmtpId: xmtpResult?.success ? xmtpResult.xmtpId : null
         })
       })
 
@@ -128,7 +201,12 @@ export default function ChatRoomPage() {
         setMessages(prev => [...prev, message])
         setNewMessage('')
         
-        console.log(`📨 Message sent via ${xmtpId ? 'XMTP + Database' : 'Database only'}`)
+        const method = xmtpResult?.success ? 'XMTP + Database' : 'Database only'
+        console.log(`📨 Message sent via ${method}`)
+        
+        if (xmtpResult?.success) {
+          console.log('🌐 Message available for cross-app messaging via XMTP')
+        }
       } else {
         throw new Error('Failed to send message')
       }

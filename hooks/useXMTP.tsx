@@ -12,6 +12,7 @@ export function useXMTP() {
   const { authenticated, user } = usePrivy()
   const [isXMTPReady, setIsXMTPReady] = useState(false)
   const [xmtpError, setXMTPError] = useState<string | null>(null)
+  const [isInitializing, setIsInitializing] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -25,36 +26,53 @@ export function useXMTP() {
         return
       }
 
-      // Check if XMTP is already initialized
+      // Check if XMTP is already initialized for this wallet
       if (getXMTPClient()) {
         setIsXMTPReady(true)
         return
       }
 
+      // Don't initialize multiple times
+      if (isInitializing) return
+      
+      setIsInitializing(true)
+      
       try {
         setXMTPError(null)
+        console.log('🔄 Initializing XMTP client for:', user.wallet.address)
         
-        // Get Privy's embedded wallet signer for XMTP
-        const wallet = user.wallet
-        if (!wallet) {
-          throw new Error('No wallet available')
+        // For now, we'll create a simple signer interface
+        // In a full implementation, this would integrate with Privy's signing capabilities
+        const walletSigner = {
+          getAddress: async () => user.wallet!.address,
+          signMessage: async (message: string) => {
+            // For now, we'll skip the actual signing since it requires more complex integration
+            // This would normally use Privy's wallet.sign() method
+            console.log('📝 Would sign message:', message)
+            throw new Error('Message signing not yet implemented - XMTP client setup deferred')
+          }
         }
 
-        // Initialize XMTP with wallet signer
-        // Note: This requires the user's wallet to be unlocked
-        const client = await initializeXMTP(wallet.address)
+        // Initialize XMTP client with the signer
+        const client = await initializeXMTP(walletSigner)
         
         if (mounted) {
           setIsXMTPReady(!!client)
-          if (!client) {
-            setXMTPError('XMTP initialization failed - messaging will use database only')
+          if (client) {
+            console.log('✅ XMTP client ready for cross-app messaging')
+          } else {
+            setXMTPError('XMTP signing integration needed - messaging will use database only')
           }
         }
       } catch (error) {
-        console.error('XMTP setup error:', error)
+        console.error('❌ XMTP setup error:', error)
         if (mounted) {
-          setXMTPError(error instanceof Error ? error.message : 'XMTP setup failed')
+          setXMTPError('XMTP requires wallet signing setup - using database messaging for now')
           setIsXMTPReady(false)
+        }
+      } finally {
+        if (mounted) {
+          setIsInitializing(false)
         }
       }
     }
@@ -64,7 +82,7 @@ export function useXMTP() {
     return () => {
       mounted = false
     }
-  }, [authenticated, user?.wallet?.address])
+  }, [authenticated, user?.wallet?.address, isInitializing])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -76,6 +94,7 @@ export function useXMTP() {
   return {
     isXMTPReady,
     xmtpError,
+    isInitializing,
     xmtpClient: getXMTPClient(),
     userAddress: user?.wallet?.address || null
   }
