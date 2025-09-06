@@ -10,9 +10,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Env
-.env
-.env*.local
+# Environment files - NEVER commit these!
+.env*
+!.env.example
 .vercel
 
 /lib/generated/prisma
