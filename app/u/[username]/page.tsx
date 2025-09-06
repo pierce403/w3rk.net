@@ -55,9 +55,15 @@ export default function UserProfilePage() {
         }
         
         // Show name prompt if user is viewing their own profile and has no ENS/Base name
+        // Check if displayName looks like an address (0x...) rather than an ENS name
+        const hasReadableName = foundUser.displayName && 
+          (foundUser.displayName.includes('.eth') || 
+           foundUser.displayName.includes('.base.eth') ||
+           !foundUser.displayName.startsWith('0x'))
+        
         if (session?.address && foundUser && 
             session.address.toLowerCase() === foundUser.address.toLowerCase() &&
-            !foundUser.ensName && !foundUser.baseName) {
+            !hasReadableName) {
           setShowNamePrompt(true)
         }
       } else {
