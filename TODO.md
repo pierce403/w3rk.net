@@ -15,9 +15,16 @@
 - [x] Skills with endorsement system
 - [x] Vercel Postgres database with Prisma ORM
 - [x] Persistent data storage for all content
+- [x] Database migration complete - all API routes now use Postgres
+- [x] **Auth Plumbing**: Privy integration with Coinbase Smart Wallet support
+- [x] **Base App Login**: "Continue with Base (Coinbase)" button on homepage
+- [x] **Smart Wallet Support**: Embedded wallets with user-friendly onboarding
+- [x] **ENS Integration**: Real-time name resolution and profile links
 
 ### 🔄 In Progress
-- [x] Database migration complete - all API routes now use Postgres
+- [ ] **Auth UX Polish**: Improve loading states and error handling
+- [ ] **Gasless Paymaster**: Integrate Base paymaster for free transactions
+- [ ] **Base Chain Restriction**: Restrict app to Base network only for production
 
 ## Roadmap (Updated Priorities)
 

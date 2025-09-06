@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import BaseAuthButton from '../components/BaseAuthButton'
 
 interface Job {
   id: string
@@ -62,13 +63,18 @@ export default function Home() {
         <p style={{ fontSize: '1.25rem', color: '#666', margin: '0 0 2rem 0', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
           Decentralized work platform built on Base. Connect your wallet, find opportunities, and get paid onchain.
         </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="/j" className="btn">
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+          <a href="/j" className="btn secondary">
             Browse Jobs
           </a>
           <a href="/s" className="btn secondary">
             Find Services
           </a>
+        </div>
+        
+        {/* Base App Login */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <BaseAuthButton />
         </div>
       </div>
 

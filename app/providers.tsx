@@ -17,7 +17,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         },
         // Supported login methods
         loginMethods: ['wallet'],
-        // Supported wallets  
+        // Smart Wallet Configuration - Prefer Coinbase Smart Wallet
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+          requireUserPasswordOnCreate: false,
+        },
+        // Supported chains - Base first
         supportedChains: [
           {
             id: 8453,
@@ -58,11 +63,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               default: { name: 'Etherscan', url: 'https://etherscan.io' },
             },
           }
-        ],
-        // Show wallet connection options including QR codes
-        embeddedWallets: {
-          createOnLogin: 'users-without-wallets'
-        }
+        ]
       }}
       >
         {children}
