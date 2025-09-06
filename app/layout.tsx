@@ -6,6 +6,7 @@ import NetworkIndicator from '../components/NetworkIndicator'
 import FarcasterSDK from '../components/FarcasterSDK'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://w3rk.net'),
   title: 'w3rk.net — Onchain tasking, UBI-ready',
   description: 'A decentralized task board with escrow, messaging, and an Active Seeker Dividend.',
   manifest: '/manifest.json',
@@ -21,8 +22,17 @@ export const metadata: Metadata = {
     description: 'Onchain tasking, UBI-ready.',
     url: 'https://w3rk.net',
     siteName: 'w3rk.net',
+    images: ['/icon-512.png'],
   },
   robots: { index: true, follow: true },
+  other: {
+    // Farcaster Frame metadata for embed detection
+    'fc:frame': 'vNext',
+    'fc:frame:image': 'https://w3rk.net/icon-512.png',
+    'fc:frame:button': 'Launch w3rk',
+    'fc:frame:button:action': 'launch_frame',
+    'fc:frame:button:target': 'https://w3rk.net',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
