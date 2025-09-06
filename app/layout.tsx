@@ -26,14 +26,14 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   other: {
-    // Farcaster miniapp metadata for embed detection (current format)
+    // Farcaster miniapp metadata (official format)
     'fc:miniapp': JSON.stringify({
       version: '1',
       imageUrl: 'https://w3rk.net/icon-512.png',
       button: {
         title: 'Launch w3rk',
         action: {
-          type: 'launch_miniapp',
+          type: 'launch_frame',
           name: 'w3rk.net',
           url: 'https://w3rk.net',
           splashImageUrl: 'https://w3rk.net/icon-512.png',
@@ -41,12 +41,6 @@ export const metadata: Metadata = {
         }
       }
     }),
-    // Legacy frame format for backward compatibility
-    'fc:frame': 'vNext',
-    'fc:frame:image': 'https://w3rk.net/icon-512.png',
-    'fc:frame:button': 'Launch w3rk',
-    'fc:frame:button:action': 'launch_frame',
-    'fc:frame:button:target': 'https://w3rk.net',
   },
 }
 
