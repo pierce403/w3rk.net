@@ -8,9 +8,8 @@ interface Job {
   id: string
   title: string
   budget: string
-  desc: string
-  user: string
-  userDisplayName?: string
+  description: string
+  user: { address: string; displayName: string }
   createdAt?: string
 }
 
@@ -79,7 +78,7 @@ export default function JobPage() {
             </div>
             
             <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1.5rem' }}>
-              Posted by: {job.userDisplayName || `${job.user.slice(0, 6)}...${job.user.slice(-4)}`}
+              Posted by: {job.user.displayName}
               {job.createdAt && ` • ${new Date(job.createdAt).toLocaleDateString()}`}
             </div>
           </div>
@@ -88,7 +87,7 @@ export default function JobPage() {
             <ChatButton
               jobId={job.id}
               title={job.title}
-              ownerAddress={job.user}
+              ownerAddress={job.user.address}
               type="job"
             />
           </div>
@@ -97,7 +96,7 @@ export default function JobPage() {
         <div>
           <h3 style={{ marginBottom: '1rem' }}>Job Description</h3>
           <p style={{ margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-            {job.desc}
+            {job.description}
           </p>
         </div>
       </div>
@@ -111,7 +110,7 @@ export default function JobPage() {
           <ChatButton
             jobId={job.id}
             title={job.title}
-            ownerAddress={job.user}
+            ownerAddress={job.user.address}
             type="job"
           />
           <a href="/profile" className="btn secondary">

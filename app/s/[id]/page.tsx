@@ -8,9 +8,8 @@ interface Service {
   id: string
   title: string
   rate: string
-  desc: string
-  user: string
-  userDisplayName?: string
+  description: string
+  user: { address: string; displayName: string }
   createdAt?: string
 }
 
@@ -79,7 +78,7 @@ export default function ServicePage() {
             </div>
             
             <div style={{ fontSize: '0.875rem', color: '#888', marginBottom: '1.5rem' }}>
-              Provider: {service.userDisplayName || `${service.user.slice(0, 6)}...${service.user.slice(-4)}`}
+              Provider: {service.user.displayName}
               {service.createdAt && ` • ${new Date(service.createdAt).toLocaleDateString()}`}
             </div>
           </div>
@@ -88,7 +87,7 @@ export default function ServicePage() {
             <ChatButton
               serviceId={service.id}
               title={service.title}
-              ownerAddress={service.user}
+              ownerAddress={service.user.address}
               type="service"
             />
           </div>
@@ -97,7 +96,7 @@ export default function ServicePage() {
         <div>
           <h3 style={{ marginBottom: '1rem' }}>Service Description</h3>
           <p style={{ margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-            {service.desc}
+            {service.description}
           </p>
         </div>
       </div>
@@ -111,7 +110,7 @@ export default function ServicePage() {
           <ChatButton
             serviceId={service.id}
             title={service.title}
-            ownerAddress={service.user}
+            ownerAddress={service.user.address}
             type="service"
           />
           <a href="/profile" className="btn secondary">
