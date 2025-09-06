@@ -22,10 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <header className="header">
-            <div className="brand">
+            <a href="/" className="brand" style={{ textDecoration: 'none', color: 'inherit' }}>
               <span className="brand-dot" />
               w3rk<span style={{opacity:0.7}}>.net</span>
-            </div>
+            </a>
                     <nav className="nav">
           <a href="/j">Jobs</a>
           <a href="/s">Services</a>

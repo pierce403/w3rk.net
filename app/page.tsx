@@ -1,4 +1,57 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
+interface Job {
+  id: string
+  title: string
+  budget: string
+  description: string
+  user: { displayName: string; address: string }
+  createdAt: string
+}
+
+interface Service {
+  id: string
+  title: string
+  rate: string
+  description: string
+  user: { displayName: string; address: string }
+  createdAt: string
+}
+
 export default function Home() {
+  const [recentJobs, setRecentJobs] = useState<Job[]>([])
+  const [recentServices, setRecentServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecentPosts()
+  }, [])
+
+  const fetchRecentPosts = async () => {
+    try {
+      const [jobsResponse, servicesResponse] = await Promise.all([
+        fetch('/api/jobs'),
+        fetch('/api/services')
+      ])
+
+      if (jobsResponse.ok) {
+        const jobs = await jobsResponse.json()
+        setRecentJobs(jobs.slice(0, 3)) // Get latest 3 jobs
+      }
+
+      if (servicesResponse.ok) {
+        const services = await servicesResponse.json()
+        setRecentServices(services.slice(0, 3)) // Get latest 3 services
+      }
+    } catch (error) {
+      console.error('Error fetching recent posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div style={{ display: 'grid', gap: '2rem' }}>
       {/* Hero Section */}
@@ -16,6 +69,85 @@ export default function Home() {
           <a href="/s" className="btn secondary">
             Find Services
           </a>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
+        {/* Recent Jobs */}
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0 }}>🔍 Latest Jobs</h3>
+            <a href="/j" style={{ fontSize: '0.875rem', color: '#0ea5e9', textDecoration: 'none' }}>
+              View all →
+            </a>
+          </div>
+          
+          {loading ? (
+            <p style={{ color: '#666', fontStyle: 'italic' }}>Loading jobs...</p>
+          ) : recentJobs.length > 0 ? (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {recentJobs.map((job, index) => (
+                <div key={job.id} style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
+                    <a href={`/j/${index + 1}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      {job.title}
+                    </a>
+                  </h4>
+                  <div style={{ fontSize: '0.875rem', color: '#0ea5e9', marginBottom: '0.5rem' }}>
+                    {job.budget} USDC
+                  </div>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#666', 
+                              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {job.description}
+                  </p>
+                  <div style={{ fontSize: '0.8rem', color: '#888' }}>
+                    by {job.user.displayName}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#666', fontStyle: 'italic' }}>No jobs posted yet. Be the first!</p>
+          )}
+        </div>
+
+        {/* Recent Services */}
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0 }}>🛠️ Latest Services</h3>
+            <a href="/s" style={{ fontSize: '0.875rem', color: '#10b981', textDecoration: 'none' }}>
+              View all →
+            </a>
+          </div>
+          
+          {loading ? (
+            <p style={{ color: '#666', fontStyle: 'italic' }}>Loading services...</p>
+          ) : recentServices.length > 0 ? (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {recentServices.map((service, index) => (
+                <div key={service.id} style={{ padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '8px' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
+                    <a href={`/s/${index + 1}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      {service.title}
+                    </a>
+                  </h4>
+                  <div style={{ fontSize: '0.875rem', color: '#10b981', marginBottom: '0.5rem' }}>
+                    {service.rate} USDC
+                  </div>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#666',
+                              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {service.description}
+                  </p>
+                  <div style={{ fontSize: '0.8rem', color: '#888' }}>
+                    by {service.user.displayName}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#666', fontStyle: 'italic' }}>No services posted yet. Be the first!</p>
+          )}
         </div>
       </div>
 
