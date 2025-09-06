@@ -7,7 +7,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || 'clpispdty00lu11pf5a987lac'}
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
       config={{
         // Customize Privy's appearance and behavior
         appearance: {
@@ -17,10 +17,24 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         },
         // Supported login methods
         loginMethods: ['wallet'],
-        // Smart Wallet Configuration - Prefer Coinbase Smart Wallet
+        // Smart Wallet Configuration - Coinbase Smart Wallet First
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
+          createOnLogin: 'all-users',
           requireUserPasswordOnCreate: false,
+        },
+        // Default wallet chain for smart wallet creation
+        defaultChain: {
+          id: 8453,
+          name: 'Base',
+          network: 'base-mainnet',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          rpcUrls: {
+            default: { http: ['https://mainnet.base.org'] },
+            public: { http: ['https://mainnet.base.org'] },
+          },
+          blockExplorers: {
+            default: { name: 'BaseScan', url: 'https://basescan.org' },
+          },
         },
         // Supported chains - Base first
         supportedChains: [
