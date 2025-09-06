@@ -7,6 +7,14 @@ import NetworkIndicator from '../components/NetworkIndicator'
 export const metadata: Metadata = {
   title: 'w3rk.net — Onchain tasking, UBI-ready',
   description: 'A decentralized task board with escrow, messaging, and an Active Seeker Dividend.',
+  manifest: '/manifest.json',
+  themeColor: '#0052ff',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
+  appleWebApp: {
+    capable: true,
+    title: 'w3rk',
+    statusBarStyle: 'default',
+  },
   openGraph: {
     title: 'w3rk.net',
     description: 'Onchain tasking, UBI-ready.',
@@ -26,7 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="brand-dot" />
               w3rk<span style={{opacity:0.7}}>.net</span>
             </a>
-                    <nav className="nav">
+                    {/* Desktop navigation */}
+                    <nav className="nav hidden sm:flex">
           <a href="/j">Jobs</a>
           <a href="/s">Services</a>
           <a href="/chat">Chat</a>
@@ -38,8 +47,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PrivyAuthButton />
           </div>
         </nav>
+        
+        {/* Mobile navigation */}
+        <nav className="nav sm:hidden fixed bottom-0 left-0 right-0 mobile-nav" style={{background: 'white', borderTop: '1px solid #e5e7eb', padding: '0.5rem 1rem', zIndex: 50}}>
+          <a href="/j" data-mobile data-icon="💼">Jobs</a>
+          <a href="/s" data-mobile data-icon="⚡">Services</a>
+          <a href="/chat" data-mobile data-icon="💬">Chat</a>
+          <a href="/profile" data-mobile data-icon="👤">Profile</a>
+          <div style={{position: 'absolute', top: '-3rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <NetworkIndicator />
+            <PrivyAuthButton />
+          </div>
+        </nav>
           </header>
-          <main className="container">{children}</main>
+          <main className="container" style={{paddingBottom: '6rem'}}>{children}</main>
           <footer className="footer small">
             © {new Date().getFullYear()} w3rk.net — Onchain work, built for Base.
           </footer>
