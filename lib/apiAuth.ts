@@ -9,7 +9,7 @@ export async function getAuthenticatedUser(req: NextRequest): Promise<string | n
     return session.address
   }
 
-  // Then, try Privy authentication header
+  // Then, try wallet authentication header
   const authHeader = req.headers.get('x-wallet-address')
   if (authHeader && isValidWalletAddress(authHeader)) {
     return authHeader

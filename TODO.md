@@ -10,13 +10,13 @@
 - [x] Basic API routes and health check
 - [x] Vercel deployment setup
 - [x] Sign-In With Ethereum (SIWE) authentication
-- [x] QR code wallet connection via Privy
+- [x] QR code wallet connection via Thirdweb
 - [x] User profiles with ENS/Base name resolution
 - [x] Skills with endorsement system
 - [x] Vercel Postgres database with Prisma ORM
 - [x] Persistent data storage for all content
 - [x] Database migration complete - all API routes now use Postgres
-- [x] **Auth Plumbing**: Privy integration with Coinbase Smart Wallet support
+- [x] **Auth Plumbing**: Thirdweb integration with Coinbase Smart Wallet support
 - [x] **Base App Login**: "Continue with Base (Coinbase)" button on homepage
 - [x] **Smart Wallet Support**: Embedded wallets with user-friendly onboarding
 - [x] **ENS Integration**: Real-time name resolution and profile links

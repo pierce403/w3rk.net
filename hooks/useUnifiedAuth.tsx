@@ -1,22 +1,16 @@
 'use client'
 
-import { usePrivy } from '@privy-io/react-auth'
+import { useActiveAccount } from "thirdweb/react";
 
-// Custom hook that provides NextAuth-like interface using Privy
+// Custom hook that provides NextAuth-like interface using Thirdweb
 export function useUnifiedAuth() {
-  const { ready, authenticated, user } = usePrivy()
+  const account = useActiveAccount()
+  const address = account?.address
 
-  // Extract wallet address from Privy user
-  const address = user?.wallet?.address
-
-  // Create a session-like object that matches NextAuth interface
-  const session = authenticated && address ? {
-    address,
-    // Note: Privy doesn't expose chainId in the same way, but address is the main thing we need
-  } : null
+  const session = address ? { address } : null
 
   return {
     data: session,
-    status: ready ? (authenticated ? 'authenticated' : 'unauthenticated') : 'loading'
+    status: address ? 'authenticated' : 'unauthenticated'
   }
 }

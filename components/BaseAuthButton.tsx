@@ -1,28 +1,22 @@
 'use client'
 
-import { usePrivy } from '@privy-io/react-auth'
+import { ConnectButton, useActiveAccount, useDisconnect, useActiveWallet } from "thirdweb/react";
+import { thirdwebClient } from '../lib/thirdwebClient'
 import { useENSName } from '../hooks/useENSName'
 
 export default function BaseAuthButton() {
-  const { ready, authenticated, user, login, logout } = usePrivy()
-  const { displayName } = useENSName(user?.wallet?.address)
+  const account = useActiveAccount()
+  const address = account?.address
+  const { disconnect } = useDisconnect()
+  const wallet = useActiveWallet()
+  const { displayName } = useENSName(address)
 
-  if (!ready) {
+  if (address) {
+    const userDisplayName = displayName || `${address.slice(0, 6)}...${address.slice(-4)}`
     return (
-      <button className="btn" disabled style={{ opacity: 0.6 }}>
-        Loading...
-      </button>
-    )
-  }
-
-  if (authenticated && user) {
-    const userDisplayName = displayName || 
-      (user.wallet?.address ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}` : 'Connected')
-    
-    return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
         gap: '1rem',
         padding: '0.75rem 1rem',
         backgroundColor: '#f8fafc',
@@ -30,27 +24,27 @@ export default function BaseAuthButton() {
         border: '1px solid #e2e8f0'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-          <div style={{ 
-            width: '8px', 
-            height: '8px', 
-            borderRadius: '50%', 
-            backgroundColor: '#10b981' 
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#10b981'
           }} />
-          <a 
-            href={`/u/${user.wallet?.address}`} 
-            style={{ 
-              fontSize: '0.875rem', 
-              textDecoration: 'none', 
-              color: '#374151', 
-              fontWeight: '500' 
+          <a
+            href={`/u/${address}`}
+            style={{
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              color: '#374151',
+              fontWeight: '500'
             }}
           >
             {userDisplayName}
           </a>
         </div>
-        <button 
-          className="btn small secondary" 
-          onClick={logout}
+        <button
+          className="btn small secondary"
+          onClick={() => wallet && disconnect(wallet)}
           style={{ fontSize: '0.8rem' }}
         >
           Sign out
@@ -59,44 +53,5 @@ export default function BaseAuthButton() {
     )
   }
 
-  return (
-    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-      <button 
-        className="btn" 
-        onClick={() => login({ loginMethods: ['wallet'] })}
-        style={{ 
-          backgroundColor: '#0052ff', 
-          color: 'white',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '1rem',
-          fontWeight: '600',
-          padding: '0.875rem 1.5rem'
-        }}
-      >
-        <span>🔵</span>
-        Base Wallet
-      </button>
-      <button 
-        className="btn secondary" 
-        onClick={() => login({ loginMethods: ['farcaster'] })}
-        style={{ 
-          backgroundColor: '#8a63d2', 
-          color: 'white',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '1rem',
-          fontWeight: '600',
-          padding: '0.875rem 1.5rem'
-        }}
-      >
-        <span>🟣</span>
-        Farcaster
-      </button>
-    </div>
-  )
+  return <ConnectButton client={thirdwebClient} theme="light" />
 }
