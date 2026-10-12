@@ -16,8 +16,8 @@ export function getAuthOptions(): AuthOptions {
     })],
     session:{strategy:'jwt',maxAge:24*60*60},
     callbacks:{
-      async jwt({token,user}) {if(user){token.sub=user.id;token.chainId=user.chainId}return token},
-      async session({session,token}) {session.address=token.sub;session.chainId=typeof token.chainId==='number'?token.chainId:undefined;return session},
+      async jwt({token,user}) {if(user){token.sub=user.id;token.chainId=user.chainId;token.walletType=user.walletType}return token},
+      async session({session,token}) {session.address=token.sub;session.walletType=token.walletType==='EOA'||token.walletType==='SCW'?token.walletType:undefined;session.chainId=typeof token.chainId==='number'?token.chainId:undefined;return session},
     },
     logger:{error(){console.error('auth_error')},warn(code){console.warn('auth_warning',code)},debug(){}},
   }

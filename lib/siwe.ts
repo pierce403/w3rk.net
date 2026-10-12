@@ -1,4 +1,6 @@
 import { SiweMessage } from 'siwe'
+import {verifyWalletSignature,signatureClient,type SignatureClientFactory} from './wallet-signature'
+import type {Address} from 'viem'
 export const nonceLifetimeMs=5*60*1000
 export const nonceCookie='w3rk-nonce'
 export function cookieValue(header: string, name: string) {
@@ -19,7 +21,7 @@ export function authConfig(url: string|undefined, secret: string|undefined, chai
   if(!allowedChains.length || allowedChains.some(c=>!Number.isSafeInteger(c)||c<1)) throw new Error('Invalid AUTH_ALLOWED_CHAIN_IDS')
   return {origin:origin.origin,domain:origin.host,secret,allowedChains}
 }
-export async function verifyAndConsume(db:D1Database,input:{message:string;signature:string;cookie:string},config:ReturnType<typeof authConfig>,now=Date.now()) {
+export async function verifyAndConsume(db:D1Database,input:{message:string;signature:string;cookie:string},config:ReturnType<typeof authConfig>,now=Date.now(),clientFor:SignatureClientFactory=signatureClient,clock:()=>number=Date.now) {
   try {
     if(input.message.length>16384||input.signature.length>4096) return null
     const token=cookieValue(input.cookie,nonceCookie)
@@ -33,10 +35,14 @@ export async function verifyAndConsume(db:D1Database,input:{message:string;signa
     const browserHash=await digest(token)
     const challenge=await db.prepare('SELECT expiresAt FROM auth_challenges WHERE nonce=? AND browserHash=? AND consumedAt IS NULL AND expiresAt>?').bind(siwe.nonce,browserHash,now).first<{expiresAt:number}>()
     if(!challenge||expires>challenge.expiresAt) return null
-    const result=await siwe.verify({signature:input.signature,domain:config.domain,nonce:siwe.nonce,time:new Date(now).toISOString()})
-    if(!result.success) return null
+    // Keep SIWE parsing/field validation, but avoid siwe.verify's raw-signature error logger.
+    const walletType=await verifyWalletSignature(siwe.address as Address,siwe.chainId,siwe.prepareMessage(),input.signature,clientFor)
+    if(!walletType) return null
+    // RPC verification can outlast a challenge; never consume against a stale clock.
+    const verifiedAt=Math.max(now,clock())
+    if(expires<=verifiedAt) return null
     // Consuming after signature verification with a conditional update makes concurrent replays single-use.
-    const consumed=await db.prepare('UPDATE auth_challenges SET consumedAt=? WHERE nonce=? AND browserHash=? AND consumedAt IS NULL AND expiresAt>?').bind(now,siwe.nonce,browserHash,now).run()
-    return consumed.meta.changes===1?{id:siwe.address,chainId:siwe.chainId}:null
+    const consumed=await db.prepare('UPDATE auth_challenges SET consumedAt=? WHERE nonce=? AND browserHash=? AND consumedAt IS NULL AND expiresAt>?').bind(verifiedAt,siwe.nonce,browserHash,verifiedAt).run()
+    return consumed.meta.changes===1?{id:siwe.address,chainId:siwe.chainId,walletType}:null
   } catch { return null }
 }

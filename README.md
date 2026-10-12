@@ -47,7 +47,7 @@ Open http://localhost:3000 to view the application.
 
 This migration uses native Cloudflare Git builds, Workers and D1. Pushes to the configured production branch build and publish in Cloudflare. No Cloudflare credential is stored in GitHub. Vercel Git deployments are disabled; the previous deployment remains recovery evidence.
 
-Read [migration and recovery instructions](docs/cloudflare-migration.md) before provisioning or publishing. The checked-in D1 ID is deliberately a placeholder and writes default to disabled. A stable runtime authentication secret, approved public Thirdweb client ID, verified data import and native build are required before cutover.
+Read [migration and recovery instructions](docs/cloudflare-migration.md) before provisioning or publishing. The checked-in D1 ID names the provisioned production database and writes default to disabled. A stable runtime authentication secret, approved public Thirdweb client ID, verified data import and native build are required before cutover.
 
 ## Health Check
 

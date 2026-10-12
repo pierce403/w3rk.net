@@ -1,5 +1,6 @@
 'use client'
 import { Client, type Signer, type Dm, type DecodedMessage } from '@xmtp/browser-sdk'
+import {xmtpSignerKey} from './xmtp-signer'
 let client:Client|null=null
 let initializing:Promise<Client|null>|null=null
 let owner:string|null=null
@@ -7,13 +8,14 @@ let generation=0
 const conversations=new Map<string,Promise<Dm|null>>()
 const stops=new Set<()=>void>()
 export interface NetworkMessage {id:string;content:string;senderInboxId:string;senderAddress:string|null;sentAt:Date;xmtpId:string}
-export async function initializeXMTP(signer:Signer):Promise<Client|null>{
-  const identity=(await signer.getIdentifier()).identifier.toLowerCase()
+export async function initializeXMTP(signer:Signer,isCurrent:()=>boolean=()=>true):Promise<Client|null>{
+  const identity=await xmtpSignerKey(signer)
+  if(!isCurrent())return null
   if(owner===identity){if(client)return client;if(initializing)return initializing}
   disconnectXMTP();owner=identity
   const current=generation
   initializing=Client.create(signer,{env:'production'}).then(value=>{
-    if(current!==generation){value.close();return null}client=value;return value
+    if(current!==generation||!isCurrent()){value.close();return null}client=value;return value
   }).catch(()=>null).finally(()=>{if(current===generation)initializing=null})
   return initializing
 }

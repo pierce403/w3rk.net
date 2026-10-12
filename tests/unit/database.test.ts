@@ -5,7 +5,10 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare'
 import {Wallet} from 'ethers'
 import {SiweMessage} from 'siwe'
 import {Repository,HttpError} from '../../lib/repository'
-import {authConfig,verifyAndConsume,digest,nonceCookie} from '../../lib/siwe'
+import {authConfig,verifyAndConsume as verifyWithRPC,digest,nonceCookie} from '../../lib/siwe'
+import {contractWallet} from '../helpers/contract-wallet'
+import type {Address} from 'viem'
+const verifyAndConsume=(...args:Parameters<typeof verifyWithRPC>)=>verifyWithRPC(args[0],args[1],args[2],args[3],args[4]??(()=>null),args[5])
 let mf:Miniflare,db:D1Database,repo:Repository
 const alice=Wallet.createRandom(),bob=Wallet.createRandom(),outsider=Wallet.createRandom()
 before(async()=>{
@@ -68,4 +71,30 @@ test('concurrent SIWE replay consumes exactly one challenge',async()=>{
  const input=await challenge()
  const results=await Promise.all([verifyAndConsume(db,input,config),verifyAndConsume(db,input,config)])
  assert.equal(results.filter(Boolean).length,1)
+})
+
+test('contract-wallet SIWE preserves browser binding, domain, chain and single-use nonce',async()=>{
+ const address='0x0000000000000000000000000000000000000127' as Address
+ const mock=contractWallet(address,alice.address as Address)
+ const input=await challenge({address})
+ const verify=(value:typeof input)=>verifyAndConsume(db,value,config,Date.now(),mock.clientFor)
+ assert.equal(await verify({...input,cookie:''}),null)
+ assert.equal(mock.calls.length,0)
+ assert.equal(await verify({...input,signature:await bob.signMessage('wrong')}),null)
+ assert.equal((await db.prepare('SELECT consumedAt FROM auth_challenges WHERE nonce=?').bind(input.nonce).first<{consumedAt:number|null}>())?.consumedAt,null)
+ const results=await Promise.all([verify(input),verify(input)])
+ assert.equal(results.filter(Boolean).length,1)
+ assert.deepEqual(results.find(Boolean),{id:address,chainId:8453,walletType:'SCW'})
+ const before=mock.calls.length
+ assert.equal(await verify(await challenge({address,domain:'wrong.example'})),null)
+ assert.equal(await verify(await challenge({address,chainId:137})),null)
+ assert.equal(await verify(await challenge({address,expirationTime:new Date(Date.now()-1).toISOString()})),null)
+ assert.equal(mock.calls.length,before)
+})
+
+test('a challenge expiring during contract verification is neither accepted nor consumed',async()=>{
+ const address='0x0000000000000000000000000000000000000127' as Address
+ const mock=contractWallet(address,alice.address as Address),input=await challenge({address}),now=Date.now()
+ assert.equal(await verifyAndConsume(db,input,config,now,mock.clientFor,()=>now+300001),null)
+ assert.equal((await db.prepare('SELECT consumedAt FROM auth_challenges WHERE nonce=?').bind(input.nonce).first<{consumedAt:number|null}>())?.consumedAt,null)
 })

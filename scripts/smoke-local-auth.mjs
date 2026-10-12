@@ -20,7 +20,7 @@ const message=new SiweMessage({domain:new URL(base).host,address:wallet.address,
 const signature=await wallet.signMessage(message.prepareMessage())
 const loginBody=new URLSearchParams({message:JSON.stringify(message),signature,csrfToken,callbackUrl:base,json:'true'})
 res=await request('/api/auth/callback/credentials',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:loginBody});assert.equal(res.status,200,'credential callback');const login=await res.json();assert.equal(new URL(login.url).searchParams.get('error'),null,'credentials accepted')
-res=await request('/api/auth/session');assert.equal(res.status,200);assert.equal((await res.json()).address,wallet.address,'verified session')
+res=await request('/api/auth/session');assert.equal(res.status,200);const session=await res.json();assert.equal(session.address,wallet.address,'verified session');assert.equal(session.walletType,'EOA','server-verified wallet type');assert.equal(session.chainId,8453,'server-verified chain')
 res=await request('/api/jobs',{...jsonPost({title:'forged origin',budget:'1',desc:'x'}),headers:{'content-type':'application/json',origin:'https://evil.example'}});assert.equal(res.status,403,'cross-origin write rejected')
 res=await request('/api/jobs',jsonPost({title:'Synthetic migration check',budget:'1',desc:'Local-only test'}));assert.equal(res.status,201,'authenticated write')
 res=await request('/api/chat/rooms',jsonPost({type:'direct',title:'Local test',participantAddresses:[other.address]}));assert.equal(res.status,201);const room=await res.json()
