@@ -1,9 +1,12 @@
 import './globals.css'
+import { isReadOnly } from '../lib/db'
 import type { Metadata } from 'next'
 import Providers from './providers'
 import ThirdwebAuthButton from '../components/ThirdwebAuthButton'
 import NetworkIndicator from '../components/NetworkIndicator'
 import FarcasterSDK from '../components/FarcasterSDK'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://w3rk.net'),
@@ -48,6 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        {isReadOnly() && <aside role="status" style={{padding:'1rem',background:'#fff4cc',color:'#222',textAlign:'center'}}>
+          Updates and sign-in are temporarily paused. You can still browse.
+        </aside>}
         <Providers>
           <header className="header">
             <a href="/" className="brand" style={{ textDecoration: 'none', color: 'inherit' }}>
