@@ -31,3 +31,17 @@
 - Fresh npm10 install exposed an optional date-fns4 peer conflict with MetaMask's date-fns2 dependency. Regenerating alone reproduced it; explicitly pinning4.4.0 preserved nested2.30.0 and resolved clean npm ci. The clean checkout passes typecheck, all35 tests, production build, Wrangler dry-run (6144.48KiB compressed), local workerd auth/write/chat/replay/logout checks and installed Chrome hydration/navigation/PWA cache upgrade. Current dependency-path review is in docs/dependency-security.md; unresolved advisories are retained accurately.
 - CUA confirms Privy SDK readiness and its login dialog locally. Both the old live Privy2 site and revised Privy3 dialog show only Farcaster; the wallet option is under investigation before treating wallet acceptance as complete. No user identity, wallet transaction, production source freeze or hosting cutover occurred in these checks.
 - Traced the missing wallet option to Privy's smartWalletOnly connector rename/filter mismatch. Coinbase's supported options=all restores the chooser and retains both smart-wallet and EOA support. Rebuilt CUA verification shows Coinbase Wallet and Farcaster with no errors; regression smoke now asserts both choices. No unsupported wallet-name cast or private account setting change was needed.
+
+- Added an explicit original-five-table source export mode for the approved
+  empty-chat mapping. It checks the actual public table/column schema and reads
+  fresh source rows in one read-only repeatable-read transaction, validates all
+  relationships and wallet uniqueness, then writes timestamped private snapshots
+  and mapping manifests without overwriting. The default eight-table exporter
+  remains strict. This replaces the need to adapt the one-shot rehearsal script
+  or reuse its historical snapshot for final copying. No live PostgreSQL/D1
+  connection, source export, import, freeze or publication occurred in this work.
+- Node22.22.0 typecheck and all44 synthetic unit tests pass, including nine new
+  source-schema/export tests and real embedded PostgreSQL restoration into the
+  original five-table schema. Independent read-only review found no blocking
+  correctness issue. This is local transfer tooling; the deployed app, wallet
+  behavior, database bindings, read-only flag and dependency lock are unchanged.

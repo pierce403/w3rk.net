@@ -46,6 +46,40 @@ Actual-data D1 readback and reverse restoration into the original five-table Pos
 
 A separate local rehearsal applied the explicit chat schema migration and preserved three synthetic future chat rows alongside every real source row, with exact canonical equality. The source-only restore refused those new chat rows as intended. No source writes, writer freeze, production import, Worker publication or DNS cutover occurred during rehearsal.
 
+### Final export from the original five-table source
+
+The default `export-pg OUTPUT` command requires all eight application tables. For
+the explicitly approved original source mapping, use this separate opt-in mode
+only after the coordinator proves the source freeze and completes the drain:
+
+```bash
+# DATABASE_URL is supplied privately in the process environment, never in argv.
+# PRIVATE_DIRECTORY must already exist with mode0700.
+node scripts/transfer-data.mjs export-pg PRIVATE_DIRECTORY --source-mapping original-five-table-v1
+```
+
+This command inspects the public schema and reads all five original tables in one
+read-only repeatable-read transaction. It requires exactly the original table
+and column names, data types, nullability, defaults and timestamp precision.
+The optional `_prisma_migrations` table is recorded as excluded metadata. Any
+unexpected application table, any newly present chat table, or schema mismatch
+stops the export. All record fields, IDs, timestamps, relationships and uniqueness
+checks apply before initializing the three explicitly absent chat tables empty.
+Source constraints are still compared during the coordinator's schema preflight;
+this export's schema guard checks columns and validates record relationships.
+
+The private directory receives timestamped `*-source.json` and `*-manifest.json`
+files with mode0600 and overwrite protection. The manifest records the approved
+mapping, schema fingerprint, counts and canonical data digest. Stdout reports
+filenames/counts/digest only. A filesystem failure may leave one private file;
+preserve it and inspect before taking a new export. No database is modified.
+
+Take two fresh exports separated by the agreed drain interval, validate both and
+compare canonical records before generating final import SQL. Do not reuse the
+earlier rehearsal snapshot. This option does not establish a writer freeze or
+authorize import, routing changes or write enablement. If the schema changes,
+review the mapping instead of treating missing or additional tables as empty.
+
 ## Local verification
 
 ```

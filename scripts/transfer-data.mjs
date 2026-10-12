@@ -71,9 +71,16 @@ export async function main(args){
  const [command,input,output]=args
  if(command==='export-pg'){
   if(!input||!process.env.DATABASE_URL)throw Error('export-pg OUTPUT requires DATABASE_URL in the process environment')
+  const mapped=args.length===4&&output==='--source-mapping'&&args[3]==='original-five-table-v1'
+  if(args.length!==2&&!mapped)throw Error('Unknown PostgreSQL export option')
   const {Client}=await import('pg');const client=new Client({connectionString:process.env.DATABASE_URL})
   await client.connect()
   try{
+   if(mapped){
+    const {exportMappedPg,writeMappedExport}=await import('./source-export.mjs')
+    console.log(JSON.stringify(await writeMappedExport(input,await exportMappedPg(client))))
+    return
+   }
    await client.query("SET TIME ZONE 'UTC'")
    await client.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
    const tables={}
