@@ -50,11 +50,17 @@ export function canonical(snapshot){validate(snapshot);return JSON.stringify(Obj
 export function report(snapshot){return{sha256:createHash('sha256').update(canonical(snapshot)).digest('hex'),counts:Object.fromEntries(Object.keys(fields).map(t=>[t,snapshot.tables[t].length]))}}
 export function sql(snapshot,target){
  validate(snapshot)
- if(!['d1','pg'].includes(target))throw Error('Unknown SQL target')
+ if(!['d1','pg','pg-source'].includes(target))throw Error('Unknown SQL target')
+ const sourceOnly=target==='pg-source',postgres=target.startsWith('pg')
+ const selected=Object.keys(fields).filter(t=>!sourceOnly||!t.startsWith('chat_'))
+ if(sourceOnly&&Object.keys(fields).some(t=>t.startsWith('chat_')&&snapshot.tables[t].length))throw Error('Source schema cannot store new chat data; migrate recovery schema first')
  const quote=v=>v===null?'NULL':"'"+v.replaceAll("'","''")+"'"
- const lines=target==='pg'?['BEGIN;','SET LOCAL standard_conforming_strings = on;',`LOCK TABLE ${Object.keys(fields).map(t=>'"'+t+'"').join(',')} IN ACCESS EXCLUSIVE MODE;`,`DO $$ BEGIN IF ${Object.keys(fields).map(t=>`EXISTS (SELECT 1 FROM "${t}")`).join(' OR ')} THEN RAISE EXCEPTION 'Recovery destination must be empty'; END IF; END $$;`]:[]
- for(const [table,cols]of Object.entries(fields))for(const row of snapshot.tables[table])lines.push(`INSERT INTO "${table}" (${cols.map(c=>'"'+c+'"').join(',')}) VALUES (${cols.map(c=>quote(row[c])).join(',')});`)
- if(target==='pg')lines.push('COMMIT;')
+ const lines=postgres?['BEGIN;','SET LOCAL standard_conforming_strings = on;',`LOCK TABLE ${selected.map(t=>'"'+t+'"').join(',')} IN ACCESS EXCLUSIVE MODE;`,`DO $$ BEGIN IF ${selected.map(t=>`EXISTS (SELECT 1 FROM "${t}")`).join(' OR ')} THEN RAISE EXCEPTION 'Recovery destination must be empty'; END IF; END $$;`]:[
+  // This NOT NULL guard inserts nothing into an empty destination and aborts a nonempty import.
+  `INSERT INTO auth_challenges(nonce,browserHash,expiresAt) SELECT NULL,'import-guard',0 WHERE ${selected.map(t=>`EXISTS (SELECT 1 FROM "${t}")`).join(' OR ')};`,
+ ]
+ for(const [table,cols]of Object.entries(fields).filter(([table])=>selected.includes(table)))for(const row of snapshot.tables[table])lines.push(`INSERT INTO "${table}" (${cols.map(c=>'"'+c+'"').join(',')}) VALUES (${cols.map(c=>quote(row[c])).join(',')});`)
+ if(postgres)lines.push('COMMIT;')
  return lines.join('\n')+'\n'
 }
 // Prisma PostgreSQL TIMESTAMP(3) stores UTC without a zone. Format in SQL so the
@@ -82,10 +88,10 @@ export async function main(args){
   const tables=JSON.parse(await readFile(input,'utf8'));const snapshot=validate({schemaVersion:1,exportedAt:new Date().toISOString(),tables})
   await privateWrite(output,JSON.stringify(snapshot)+'\n');console.log(JSON.stringify(report(snapshot)))
  }else{
-  if(!input)throw Error('Expected validate INPUT, sql-d1 INPUT OUTPUT, or sql-pg INPUT OUTPUT')
+  if(!input)throw Error('Expected validate INPUT, sql-d1 INPUT OUTPUT, sql-pg INPUT OUTPUT, or sql-pg-source INPUT OUTPUT')
   const snapshot=validate(JSON.parse(await readFile(input,'utf8')))
   if(command==='validate')console.log(JSON.stringify(report(snapshot)))
-  else if(['sql-d1','sql-pg'].includes(command)&&output){await privateWrite(output,sql(snapshot,command.slice(4)));console.log(JSON.stringify(report(snapshot)))}
+  else if(['sql-d1','sql-pg','sql-pg-source'].includes(command)&&output){await privateWrite(output,sql(snapshot,command.slice(4)));console.log(JSON.stringify(report(snapshot)))}
   else throw Error('Unknown command')
  }
 }

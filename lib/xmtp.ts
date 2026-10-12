@@ -35,8 +35,9 @@ export async function createXMTPConversation(address:string):Promise<Dm|null>{
   if(!result)conversations.delete(key)
   return result
 }
-export async function sendXMTPMessage(address:string,content:string){
-  try{const conversation=await createXMTPConversation(address);if(!conversation)return{success:false,error:'Recipient unavailable on XMTP'};return{success:true,xmtpId:await conversation.send(content)}}catch{return{success:false,error:'XMTP send failed'}}
+export async function sendXMTPMessage(address:string,content:string,canSend:()=>boolean=()=>true){
+  const current=generation
+  try{const conversation=await createXMTPConversation(address);if(!conversation||current!==generation||!canSend())return{success:false,error:'Recipient unavailable on XMTP'};return{success:true,xmtpId:await conversation.send(content)}}catch{return{success:false,error:'XMTP send failed'}}
 }
 async function normalize(conversation:Dm,message:DecodedMessage):Promise<NetworkMessage|null>{
   if(typeof message.content!=='string')return null

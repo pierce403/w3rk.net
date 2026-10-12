@@ -36,6 +36,7 @@ test('synthetic full snapshot survives real D1 then embedded PostgreSQL recovery
   const db=await mf.getD1Database('DB'),original=snapshot()
   await db.exec(await readFile('migrations/0001_application.sql','utf8'))
   await db.exec(sql(original,'d1'))
+  await assert.rejects(()=>db.exec(sql(original,'d1')),/NOT NULL/)
   const tables:Record<string,unknown[]>={}
   for(const [table,cols]of Object.entries(fields))tables[table]=(await db.prepare(`SELECT ${cols.map(c=>'"'+c+'"').join(',')} FROM "${table}"`).all()).results
   const restored={schemaVersion:1,exportedAt:now,tables}
@@ -50,4 +51,12 @@ test('synthetic full snapshot survives real D1 then embedded PostgreSQL recovery
   assert.equal(canonical({schemaVersion:1,exportedAt:now,tables:back}),canonical(original))
   await assert.rejects(()=>pg.exec(sql(restored,'pg')),/must be empty/)
  }finally{await mf.dispose();await pg.close()}
+})
+
+
+test('original PostgreSQL recovery omits absent chat tables and refuses new chat records',()=>{
+ assert.throws(()=>sql(snapshot(),'pg-source'),/cannot store new chat/)
+ const s=snapshot();for(const t of ['chat_rooms','chat_participants','chat_messages'] as const)s.tables[t]=[]
+ const result=sql(s,'pg-source');assert.doesNotMatch(result,/chat_rooms|chat_messages|chat_participants/)
+ assert.match(result,/LOCK TABLE "users","jobs","services","skills","endorsements"/)
 })

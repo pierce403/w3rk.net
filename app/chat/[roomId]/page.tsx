@@ -3,7 +3,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth'
 import { useParams } from 'next/navigation'
 import { useXMTP } from '../../../hooks/useXMTP'
-import { sendXMTPMessage, listenForXMTPMessages } from '../../../lib/xmtp'
+import { sendXMTPMessage, listenForXMTPMessages, getXMTPMessageHistory } from '../../../lib/xmtp'
+import {decodeChatEnvelope,persistThenDeliver} from '../../../lib/chat-delivery'
 
 interface ChatMessage {
   id: string
@@ -59,126 +60,91 @@ export default function ChatRoomPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const contextKey=status==='authenticated'&&session?.address&&roomId?`${session.address.toLowerCase()}:${roomId}`:''
+  const currentContext=useRef(contextKey)
+  currentContext.current=contextKey
+  const [loadedContext,setLoadedContext]=useState('')
+  const [deliveryNotice,setDeliveryNotice]=useState('')
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.address && roomId) {
-      fetchChatRoom()
-      fetchMessages()
-    }
-  }, [session, status, roomId])
+    const controller=new AbortController()
+    setChatRoom(null);setMessages([]);setNewMessage('');setDeliveryNotice('');setSending(false);setLoadedContext('');setLoading(!!contextKey)
+    if(!contextKey)return()=>controller.abort()
+    void(async()=>{
+      try{
+        const [roomsResponse,messagesResponse]=await Promise.all([
+          fetch('/api/chat/rooms',{signal:controller.signal}),
+          fetch(`/api/chat/rooms/${roomId}/messages`,{signal:controller.signal}),
+        ])
+        if(!roomsResponse.ok||!messagesResponse.ok)throw Error('Chat unavailable')
+        const rooms=await roomsResponse.json() as ChatRoom[],items=await messagesResponse.json() as ChatMessage[]
+        if(controller.signal.aborted||currentContext.current!==contextKey)return
+        const room=rooms.find(r=>r.id===roomId)
+        setChatRoom(room??null);setMessages(room?items:[])
+      }catch{
+        if(!controller.signal.aborted&&currentContext.current===contextKey){setChatRoom(null);setMessages([])}
+      }finally{
+        if(!controller.signal.aborted&&currentContext.current===contextKey){setLoading(false);setLoadedContext(contextKey)}
+      }
+    })()
+    return()=>controller.abort()
+  },[contextKey,roomId])
 
-  // Network messages remain client-side; a received message is never POSTed as this user.
+  // Only explicitly attributed app envelopes enter this room. Generic external
+  // DMs and another room's messages are never assigned to the open conversation.
   useEffect(() => {
-    if(!isXMTPReady||!chatRoom||!session?.address)return
+    if(!isXMTPReady||!chatRoom||chatRoom.id!==roomId||loadedContext!==contextKey||!session?.address)return
     const other=chatRoom.participants.map(p=>p.user.address).filter(a=>a.toLowerCase()!==session.address!.toLowerCase())
     if(other.length!==1)return
     let active=true,stop:undefined|(()=>void)
-    void listenForXMTPMessages(other[0],message=>{
-      if(!active||!message.senderAddress)return
-      if(!chatRoom.participants.some(p=>p.user.address.toLowerCase()===message.senderAddress!.toLowerCase()))return
-      setMessages(prev=>prev.some(m=>m.xmtpId===message.xmtpId)?prev:[...prev,{
-        id:message.id,content:message.content,createdAt:message.sentAt.toISOString(),xmtpId:message.xmtpId,
+    const receive=(message:Awaited<ReturnType<typeof getXMTPMessageHistory>>[number])=>{
+      if(!active||currentContext.current!==contextKey||!message.senderAddress)return
+      const envelope=decodeChatEnvelope(message.content,chatRoom.id)
+      if(!envelope||!chatRoom.participants.some(p=>p.user.address.toLowerCase()===message.senderAddress!.toLowerCase()))return
+      setMessages(prev=>prev.some(m=>m.id===envelope.messageId||m.xmtpId===message.xmtpId)?prev:[...prev,{
+        id:envelope.messageId,content:envelope.text,createdAt:message.sentAt.toISOString(),xmtpId:message.xmtpId,
         sender:{address:message.senderAddress!,displayName:message.senderAddress!.slice(0,6)+'...'+message.senderAddress!.slice(-4)}
-      }])
-    }).then(cleanup=>{if(active)stop=cleanup;else cleanup()})
+      }].sort((a,b)=>a.createdAt.localeCompare(b.createdAt)))
+    }
+    void listenForXMTPMessages(other[0],receive).then(cleanup=>{if(active)stop=cleanup;else cleanup()}).catch(()=>{})
+    void getXMTPMessageHistory(other[0]).then(items=>items.forEach(receive)).catch(()=>{})
     return()=>{active=false;stop?.()}
-  },[isXMTPReady,chatRoom,session?.address])
+  },[isXMTPReady,chatRoom,roomId,loadedContext,contextKey,session?.address])
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const fetchChatRoom = async () => {
-    try {
-      const response = await fetch('/api/chat/rooms')
-      if (response.ok) {
-        const rooms = await response.json() as ChatRoom[]
-        const room = rooms.find((r: ChatRoom) => r.id === roomId)
-        setChatRoom(room || null)
-      }
-    } catch (error) {
-      console.error('Error fetching chat room:', error)
-    }
-  }
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch(`/api/chat/rooms/${roomId}/messages`)
-      if (response.ok) {
-        const msgs = await response.json() as ChatMessage[]
-        setMessages(msgs)
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || sending) return
-
-    setSending(true)
-    try {
-      const messageContent = newMessage.trim()
-      let xmtpId: string | null = null
-
-      // Send via XMTP for cross-app messaging (if available)
-      let xmtpResult = null
-      if (isXMTPReady && chatRoom) {
-        const otherParticipants = chatRoom.participants
-          .map(p => p.user.address)
-          .filter(addr => addr.toLowerCase() !== session?.address?.toLowerCase())
-        
-        if (otherParticipants.length === 1) {
-          console.log('📤 Sending message via XMTP...')
-          xmtpResult = await sendXMTPMessage(otherParticipants[0], messageContent)
-          
-          if (xmtpResult.success) {
-            console.log('✅ Message sent via XMTP for cross-app messaging')
-          } else {
-            console.warn('⚠️ XMTP send failed, using database only:', xmtpResult.error)
-          }
-        }
-      }
-
-      // Also store in database for persistence and fallback
-      const response = await fetch(`/api/chat/rooms/${roomId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const room=chatRoom,context=contextKey,content=newMessage.trim()
+    if(!content||sending||!context||loadedContext!==context||!room||room.id!==roomId)return
+    const isCurrent=()=>currentContext.current===context
+    const recipients=room.participants.map(p=>p.user.address).filter(a=>a.toLowerCase()!==session?.address?.toLowerCase())
+    setSending(true);setDeliveryNotice('')
+    try{
+      const result=await persistThenDeliver({roomId:room.id,content,isCurrent,
+        persist:async()=>{
+          const response=await fetch(`/api/chat/rooms/${room.id}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})})
+          if(!response.ok)throw Error('Message was not saved. The chat may be read-only or unavailable.')
+          return await response.json() as ChatMessage
         },
-        body: JSON.stringify({
-          content: messageContent,
-          xmtpId: xmtpResult?.success ? xmtpResult.xmtpId : null
-        })
+        saved:message=>{
+          setMessages(prev=>prev.some(m=>m.id===message.id)?prev:[...prev,message]);setNewMessage('')
+          setDeliveryNotice('Saved to chat. Checking XMTP delivery…')
+        },
+        deliver:isXMTPReady&&recipients.length===1?envelope=>sendXMTPMessage(recipients[0],envelope,isCurrent):undefined,
       })
-
-      if (response.ok) {
-        const message = await response.json() as ChatMessage
-        setMessages(prev => prev.some(m => m.id===message.id || (message.xmtpId && m.xmtpId===message.xmtpId)) ? prev.map(m=>message.xmtpId&&m.xmtpId===message.xmtpId?message:m) : [...prev, message])
-        setNewMessage('')
-        
-        const method = xmtpResult?.success ? 'XMTP + Database' : 'Database only'
-        console.log(`📨 Message sent via ${method}`)
-        
-        if (xmtpResult?.success) {
-          console.log('🌐 Message available for cross-app messaging via XMTP')
-        }
-      } else {
-        throw new Error('Failed to send message')
-      }
-    } catch (error) {
-      console.error('Error sending message:', error)
-      alert('Failed to send message. Please try again.')
-    } finally {
-      setSending(false)
-    }
+      if(!isCurrent())return
+      if(result.xmtpId)setMessages(prev=>prev.map(m=>m.id===result.message.id?{...m,xmtpId:result.xmtpId}:m))
+      setDeliveryNotice(result.delivery==='sent'?'Saved to chat and delivered via XMTP.':result.delivery==='failed'?'Saved to chat. XMTP delivery failed.':'Saved to chat. XMTP delivery is unavailable.')
+    }catch{
+      if(isCurrent())setDeliveryNotice('Could not confirm the save. Reload this chat before trying again.')
+    }finally{if(isCurrent())setSending(false)}
   }
 
-  if (status === 'loading' || (status === 'authenticated' && loading)) {
+  if (status === 'loading' || (status === 'authenticated' && (loading||loadedContext!==contextKey))) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
   }
 
@@ -241,6 +207,7 @@ export default function ChatRoomPage() {
         </div>
       </div>
 
+      {deliveryNotice&&<p role="status" style={{padding:'0.5rem 1rem'}}>{deliveryNotice}</p>}
       {/* Messages */}
       <div style={{ 
         flex: 1, 
