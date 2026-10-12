@@ -17,6 +17,6 @@ Fresh npm 10.9.4 audit after those changes: production graph (`--omit=dev`) has 
 | vinext → commonjs/dynamic-import → fast-glob/micromatch/braces | Build-time local module-pattern expansion, not a public request-controlled glob endpoint. Audit proposes an unsuitable vinext downgrade; no forced downgrade applied. |
 | Thirdweb engine code-generation tooling → Hey API → js-yaml | OpenAPI generation tooling is not an application input path; W3RK does not accept YAML. |
 
-Full audit additionally reports two critical entries in the unused development chain truffle-flattener → truffle-resolver → request → form-data. The site build, authentication and request handlers do not run the Solidity flattener. Contract-development dependencies remain preserved; audit's proposed major/downgrade change was not forced.
+Full audit additionally reports two critical entries in the unused development chain truffle-flattener → @resolver-engine/imports-fs → @resolver-engine/imports → @resolver-engine/core → request → form-data. The site build, authentication and request handlers do not run the Solidity flattener. Contract-development dependencies remain preserved; audit's proposed major/downgrade change was not forced.
 
 Raw current audits, dependency paths and clean-install/build evidence are kept in the coordinator's ignored `work/vercel-migration/w3rk-ci/`. Re-check the report when enabling new SDK features or routes; do not treat unused-path analysis as permanent remediation.
