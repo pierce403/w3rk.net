@@ -19,7 +19,7 @@
   "vars": {
     "NEXTAUTH_URL": "https://w3rk.net",
     "AUTH_ALLOWED_CHAIN_IDS": "8453,84532,1",
-    "READ_ONLY": "true"
+    "READ_ONLY": "false"
   },
   "observability": { "enabled": true, "traces": { "enabled": true } }
 }

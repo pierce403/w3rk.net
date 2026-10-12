@@ -79,3 +79,14 @@ synthetic room/participant/message from that namespace. Its legacy read header w
 used only on that protected rehearsal copy; Cloudflare unsigned headers stay
 rejected. Source credentials were never placed in preview or Git. Private receipts
 and recovery exports remain with the migration coordinator.
+
+
+Custom-host read-only acceptance passed after exact native buildda694a55 and
+versiond93936d0: HTTPS, path/query-preserving HTTP301, real404, imported listings,
+paused nonce and browser/errors0. All210remaining old-host mutation denials pass
+after Cloudflare routing, with temporary key revoked. Locked CI38324323814 and
+independent public maintenance/PWA acceptance38324646316 both passed.
+READ_ONLYfalse is now released through the next native main build; source Vercel
+writers stay blocked. No synthetic content is added to production. After this
+release, rollback requires freezing Cloudflare and reverse-reconciling accepted
+changes into a fresh recovery namespace before restoring any writable origin.
