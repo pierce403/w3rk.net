@@ -6,6 +6,17 @@ Source baseline: `e4f08eebcedd33eff362d015d0d3275259c4f128` (the newer applicati
 
 Node 22.22.0 with npm 10.9.4, vinext 1.1.0, React 19.2.8, Vite 8.3.4 and Wrangler 4.149.0 are pinned in the lockfile. Native Workers Builds should use root `/`, production `main`, build `npm run build`, deploy `npm run deploy`. `vercel.json` disables Git deployments so publishing the migration cannot replace the retained Vercel recovery deployment. No deployment credential belongs in GitHub.
 
+`GET /deployment.json` returns only the project name and build revision with
+`Cache-Control: no-store`. Vite embeds native Workers Builds' `CF_COMMIT_SHA`, or
+the local `git rev-parse HEAD` when that variable is absent. An invalid or empty
+native value fails the build. This public marker uses no database or session.
+The service worker's existing static-asset allowlist excludes it. Run
+`node scripts/smoke-deployment.mjs` against the local built Worker; CI does this
+before the auth checks. For hosted acceptance, set `TEST_ORIGIN` and the exact
+reviewed `EXPECTED_BUILD_REVISION`. Compare the marker with the native build and
+active Worker version independently; do not treat a locally dirty build as proof
+that its entire source matches HEAD.
+
 `wrangler.jsonc` binds the provisioned production D1 `d11510fb-afa5-40c5-9ca7-0b1d26f5a6af`, has no custom-domain routes, disables previews, and keeps `READ_ONLY=true`. Its schema is initialized with no application rows. Staging D1 is `6958274c-ff30-4a5b-b5f5-34056ea44032`; actual private-data rehearsal uses separate D1 `1dd47184-f0fe-4bc7-8b16-f21ac8544d3e`. Never expose that rehearsal database through a Worker. Final source freeze/export/import and native Git publishing are still pending. Logs/traces are enabled without logging request bodies, wallet signatures, database rows or credentials.
 
 Required configuration:

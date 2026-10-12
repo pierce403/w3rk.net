@@ -45,3 +45,16 @@
   original five-table schema. Independent read-only review found no blocking
   correctness issue. This is local transfer tooling; the deployed app, wallet
   behavior, database bindings, read-only flag and dependency lock are unchanged.
+
+- Added a public, dynamic `/deployment.json` with only project and build revision,
+  no-store caching and no session cookie. Native builds embed validated
+  `CF_COMMIT_SHA`; local builds use Git HEAD. Invalid native metadata fails the
+  build instead of falling back. CI checks the built marker before auth smoke.
+- Node22.22.0 typecheck, all48 unit tests, production build, Wrangler dry-run and
+  isolated local workerd marker/full-auth smoke pass. The local artifact embedded
+  pre-commit HEAD `55f6db1e1cb4312dbdf99898f3f19cdf97b52c0a`; this is local
+  fallback evidence, not proof of a published release. Independent read-only
+  review found no marker blocker. The initial restricted sandbox denied the Git
+  subprocess and local workerd startup; the same checks passed outside that
+  restriction. No dependencies, provider/auth behavior, production data, secrets,
+  routes or hosting changed, and no publication was performed in this subtask.

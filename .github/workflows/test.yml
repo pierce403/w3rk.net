@@ -49,5 +49,6 @@ jobs:
           }
           throw Error('Local Worker did not become ready')
           JS
+          node scripts/smoke-deployment.mjs
           node scripts/smoke-local-auth.mjs
           node scripts/smoke-local-browser.mjs
