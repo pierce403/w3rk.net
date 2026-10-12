@@ -1,6 +1,6 @@
 # Cloudflare migration
 
-Source baseline: `e4f08eebcedd33eff362d015d0d3275259c4f128` (current Thirdweb/XMTP main), not the older Vercel production revision.
+Source baseline: `e4f08eebcedd33eff362d015d0d3275259c4f128` (the newer application and XMTP features). The owner subsequently selected the existing production Privy application for wallet connection, preserving the newer migration fixes.
 
 ## Runtime and publishing
 
@@ -10,13 +10,13 @@ Node 22.22.0 with npm 10.9.4, vinext 1.1.0, React 19.2.8, Vite 8.3.4 and Wrangle
 
 Required configuration:
 
-- `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`: public build variable for an owner-approved Thirdweb project that allows the target origin. The previous Vercel deployment only had a Privy ID. There is no invented default or automatic project creation.
+- Public wallet configuration: `lib/privy.ts` preserves the existing W3RK Privy app ID, verified from the live frontend. This is public browser configuration and requires no build secret or new account. Verify the intended staging/production origins and wallet behavior.
 - `NEXTAUTH_SECRET`: stable high-entropy Worker runtime secret, at least 32 characters. Missing/short secrets fail closed; builds need no signing secret. Keep the same secret across releases if sessions should survive.
 - `NEXTAUTH_URL`: exact canonical HTTPS origin (production `https://w3rk.net`). Only loopback HTTP is accepted for local tests.
 - `AUTH_ALLOWED_CHAIN_IDS`: preserves the existing Base, Base Sepolia and Ethereum list `8453,84532,1`.
 - `READ_ONLY`: only the exact string `false` enables application writes and login challenge issuance/consumption. Reading existing sessions/public data remains available; signout remains available.
 
-The NextAuth v4 compatibility scanner warns about API internals. The production Worker HTTP test proves CSRF, credentials, JWT session, signout and protected API handling with the pinned version. A narrow CommonJS default adapter fixes Vite 8 module wrapping. Thirdweb's transitive `rpc-websockets` and `pino` are aliased to their browser implementations to avoid Node transport modules in workerd. The validated Worker is approximately 6.1 MiB compressed, requiring the paid Worker size limit.
+The NextAuth v4 compatibility scanner warns about API internals. The production Worker HTTP test proves CSRF, credentials, JWT session, signout and protected API handling with the pinned version. A narrow CommonJS default adapter fixes Vite 8 module wrapping. Privy 3.48.1 and viem 2.56.5 are pinned. The obsolete Thirdweb transport aliases are removed. A clean npm10 install needs the explicit date-fns4.4.0 peer pin alongside MetaMask's nested2.x dependency. The rebuilt Worker is6144.48KiB compressed and passes local workerd auth and browser/PWA smoke tests.
 
 ## Data and authorization
 
@@ -24,7 +24,7 @@ D1 uses typed prepared statements for the eight existing tables and an additiona
 
 Only a signed NextAuth session authenticates API requests. [Wallet verification](wallet-authentication.md) supports EOAs and chain-bound ERC-1271/ERC-6492 contract signatures; the server records verified type and chain for the XMTP adapter. An unsigned wallet header or connection state grants no permissions. SIWE requires the configured domain/origin/chain, a browser-bound random challenge, five-minute issued/expiry times and a valid signature. A conditional D1 update consumes each nonce once, including concurrent requests. Mutating application APIs also require same-origin requests; chat reads/writes require membership.
 
-XMTP uses Thirdweb v5 signers and browser SDK 4.1.0 DMs addressed by resolved inbox ID, reuses conversations, and closes streams/client on cleanup. Decoded sender identity comes from inbox membership and nanosecond timestamps. Incoming network messages remain client-side and are never posted to D1 as the receiving user. App messages use a room-specific envelope; generic external DMs are not attributed to an app room. Navigation and session changes cancel stale reads and bind sends to one loaded room snapshot. Server persistence/authorization precedes external delivery; delivery failure remains distinct from save failure. Disposable EOA signers have passed live XMTP dev-network acceptance. Wallet-extension signing, Thirdweb origin configuration, and hosted smart-wallet XMTP acceptance still need an owner-approved client ID and interactive verification.
+XMTP uses the explicitly selected Privy wallet through a shared message-signing adapter and browser SDK 4.1.0 DMs addressed by resolved inbox ID, reuses conversations, and closes streams/client on cleanup. Decoded sender identity comes from inbox membership and nanosecond timestamps. Incoming network messages remain client-side and are never posted to D1 as the receiving user. App messages use a room-specific envelope; generic external DMs are not attributed to an app room. Navigation and session changes cancel stale reads and bind sends to one loaded room snapshot. Server persistence/authorization precedes external delivery; delivery failure remains distinct from save failure. Disposable EOA signers have passed live XMTP dev-network acceptance. Wallet-extension signing, Privy staging-origin acceptance, and hosted smart-wallet XMTP acceptance still require interactive verification.
 
 The generated `/sw.js` replaces the old worker at the same scope, removes `w3rk-cache` and legacy Workbox caches, and only caches public static assets. It never caches navigation, API, authentication, profile or chat responses. The previous roadmap/placeholder functionality is unchanged.
 

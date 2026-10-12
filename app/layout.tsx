@@ -2,7 +2,7 @@ import './globals.css'
 import { isReadOnly } from '../lib/db'
 import type { Metadata } from 'next'
 import Providers from './providers'
-import ThirdwebAuthButton from '../components/ThirdwebAuthButton'
+import WalletAuthButton from '../components/WalletAuthButton'
 import NetworkIndicator from '../components/NetworkIndicator'
 import FarcasterSDK from '../components/FarcasterSDK'
 
@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <a href="/about">About</a>
           <div style={{display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto'}}>
             <NetworkIndicator />
-            <ThirdwebAuthButton />
+            <WalletAuthButton />
           </div>
         </nav>
         
@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <a href="/profile" data-mobile data-icon="👤">Profile</a>
           <div style={{position: 'absolute', top: '-3rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
             <NetworkIndicator />
-            <ThirdwebAuthButton />
+            <WalletAuthButton />
           </div>
         </nav>
           </header>
