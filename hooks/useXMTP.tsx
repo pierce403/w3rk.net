@@ -15,8 +15,8 @@ export function useXMTP(){
     try {
       const signer=createXMTPSigner(account,session,chain?.id,isCurrent)
       setInitializing(true)
-      void initializeXMTP(signer,isCurrent).then(c=>{if(active){setReady(!!c);if(!c)setError('XMTP unavailable; database messaging remains available.')}}).finally(()=>{if(active)setInitializing(false)})
-    }catch(e){disconnectXMTP();setError(e instanceof Error?e.message:'XMTP unavailable; database messaging remains available.')}
+      void initializeXMTP(signer,isCurrent).then(c=>{if(active){setReady(!!c);if(!c)setError('XMTP unavailable. You can still use this chat.')}}).finally(()=>{if(active)setInitializing(false)})
+    }catch(e){disconnectXMTP();setError(e instanceof Error?e.message:'XMTP unavailable. You can still use this chat.')}
     return()=>{active=false;disconnectXMTP()}
   },[account,wallet,chain?.id,session?.address,session?.chainId,session?.walletType])
   return{isXMTPReady,xmtpError,isInitializing,xmtpClient:getXMTPClient(),userAddress:account?.address??null}

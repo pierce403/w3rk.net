@@ -9,7 +9,7 @@ export function createXMTPSigner(account:SigningAccount,session:VerifiedSession,
   if(!session.address||account.address.toLowerCase()!==session.address.toLowerCase()||!walletType||!chainId)throw new Error('Sign in again to enable XMTP.')
   if(activeChainId!==chainId)throw new Error('Switch to your sign-in network to enable XMTP.')
   // Of the three app chains, XMTP supports SCWs on Ethereum and Base, not Base Sepolia.
-  if(walletType==='SCW'&&![1,8453].includes(chainId))throw new Error('XMTP smart-wallet messaging is unavailable on this network. Database messaging remains available.')
+  if(walletType==='SCW'&&![1,8453].includes(chainId))throw new Error('XMTP smart-wallet messaging is unavailable on this network. You can still use this chat.')
   const shared={
     getIdentifier:()=>({identifier:account.address.toLowerCase(),identifierKind:'Ethereum' as const}),
     signMessage:async(message:string)=>{
