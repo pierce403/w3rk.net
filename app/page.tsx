@@ -38,12 +38,12 @@ export default function Home() {
       ])
 
       if (jobsResponse.ok) {
-        const jobs = await jobsResponse.json()
+        const jobs = await jobsResponse.json() as Job[]
         setRecentJobs(jobs.slice(0, 3)) // Get latest 3 jobs
       }
 
       if (servicesResponse.ok) {
-        const services = await servicesResponse.json()
+        const services = await servicesResponse.json() as Service[]
         setRecentServices(services.slice(0, 3)) // Get latest 3 services
       }
     } catch (error) {

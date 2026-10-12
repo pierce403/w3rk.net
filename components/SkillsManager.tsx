@@ -30,7 +30,7 @@ export default function SkillsManager() {
     try {
       const response = await fetch(`/api/skills?user=${session?.address}`)
       if (response.ok) {
-        const userSkills = await response.json()
+        const userSkills = await response.json() as Skill[]
         setSkills(userSkills)
       }
     } catch (error) {
@@ -55,11 +55,11 @@ export default function SkillsManager() {
       })
 
       if (response.ok) {
-        const skill = await response.json()
+        const skill = await response.json() as Skill
         setSkills(prev => [...prev, skill])
         setNewSkill('')
       } else {
-        const error = await response.json()
+        const error = await response.json() as {error:string}
         alert(error.error || 'Failed to add skill')
       }
     } catch (error) {

@@ -71,12 +71,12 @@ export default function UserProfilePage() {
       const response = await fetch(`/api/users/${encodeURIComponent(searchAddress)}`)
       
       if (response.ok) {
-        const foundUser = await response.json()
+        const foundUser = await response.json() as UserProfile
         setUser(foundUser)
         
         // Check if current user is viewing their own profile
         if (session?.address && foundUser) {
-          setIsOwner(session.address.toLowerCase() === foundUser.address.toLowerCase())
+          setIsOwner(session.address!.toLowerCase() === foundUser.address.toLowerCase())
         }
         
         // Show name prompt if user is viewing their own profile and has no ENS/Base name
@@ -87,7 +87,7 @@ export default function UserProfilePage() {
            !foundUser.displayName.startsWith('0x'))
         
         if (session?.address && foundUser && 
-            session.address.toLowerCase() === foundUser.address.toLowerCase() &&
+            session.address!.toLowerCase() === foundUser.address.toLowerCase() &&
             !hasReadableName) {
           setShowNamePrompt(true)
         }
@@ -112,7 +112,7 @@ export default function UserProfilePage() {
       ])
 
       if (jobsResponse.ok) {
-        const allJobs = await jobsResponse.json()
+        const allJobs = await jobsResponse.json() as Job[]
         // Filter jobs by this user's address
         const userJobsFiltered = allJobs.filter((job: any) => 
           job.user.address.toLowerCase() === user.address.toLowerCase()
@@ -121,7 +121,7 @@ export default function UserProfilePage() {
       }
 
       if (servicesResponse.ok) {
-        const allServices = await servicesResponse.json()
+        const allServices = await servicesResponse.json() as Service[]
         // Filter services by this user's address  
         const userServicesFiltered = allServices.filter((service: any) =>
           service.user.address.toLowerCase() === user.address.toLowerCase()

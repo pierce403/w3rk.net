@@ -34,7 +34,7 @@ export default function ChatButton({ jobId, serviceId, title, ownerAddress, type
       })
 
       if (response.ok) {
-        const chatRoom = await response.json()
+        const chatRoom = await response.json() as {id:string}
         // Redirect to chat interface or open chat modal
         window.location.href = `/chat/${chatRoom.id}`
       } else {

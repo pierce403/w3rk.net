@@ -24,7 +24,7 @@ export default function Services() {
     try {
       const response = await fetch('/api/services')
       if (response.ok) {
-        const services = await response.json()
+        const services = await response.json() as Service[]
         setServices(services)
       }
     } catch (error) {

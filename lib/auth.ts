@@ -1,70 +1,24 @@
-import { AuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { SiweMessage } from 'siwe'
-import { randomBytes } from 'crypto'
-
-const secret = process.env.NEXTAUTH_SECRET ?? randomBytes(32).toString('hex')
-
-export const authOptions: AuthOptions = {
-  secret,
-  providers: [
-    CredentialsProvider({
-      name: 'Ethereum',
-      credentials: {
-        message: { label: 'Message', type: 'text' },
-        signature: { label: 'Signature', type: 'text' },
+import type { AuthOptions } from 'next-auth'
+import CredentialsModule from 'next-auth/providers/credentials'
+import { cjsDefault } from './cjs-default'
+const CredentialsProvider=cjsDefault(CredentialsModule)
+import { env } from 'cloudflare:workers'
+import { authConfig, verifyAndConsume } from './siwe'
+export function getAuthOptions(): AuthOptions {
+  const config=authConfig(env.NEXTAUTH_URL,env.NEXTAUTH_SECRET,env.AUTH_ALLOWED_CHAIN_IDS)
+  return {
+    secret:config.secret,
+    providers:[CredentialsProvider({name:'Ethereum',credentials:{message:{label:'Message',type:'text'},signature:{label:'Signature',type:'text'}},
+      async authorize(credentials,req) {
+        if(String(env.READ_ONLY)!=='false'||!credentials) return null
+        return verifyAndConsume(env.DB,{message:credentials.message,signature:credentials.signature,cookie:String(req.headers?.cookie??'')},config)
       },
-
-      async authorize(credentials, req) {
-        try {
-          const siwe = new SiweMessage(JSON.parse(credentials?.message || '{}'))
-          
-          // Validate that we're using allowed chain IDs
-          // Base Mainnet: 8453, Base Sepolia: 84532, Ethereum: 1
-          const allowedChainIds = [8453, 84532, 1]
-          if (!allowedChainIds.includes(siwe.chainId)) {
-            console.log(`Invalid chain ID: ${siwe.chainId}`)
-            return null
-          }
-          
-          const cookieHeader =
-            (req as any)?.headers?.get?.('cookie') || (req as any)?.headers?.cookie || ''
-          const nonce = cookieHeader
-            .split(';')
-            .map((c: string) => c.trim())
-            .find((c: string) => c.startsWith('nonce='))
-            ?.split('=')[1]
-            
-          const result = await siwe.verify({
-            signature: credentials?.signature || '',
-            nonce,
-          })
-          
-          if (result.success) {
-            return { id: siwe.address, chainId: siwe.chainId }
-          }
-          return null
-        } catch (error) {
-          console.error('SIWE verification failed:', error)
-          return null
-        }
-      },
-    }),
-  ],
-  session: { strategy: 'jwt' },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = (user as any).id
-        token.chainId = (user as any).chainId
-      }
-      return token
+    })],
+    session:{strategy:'jwt',maxAge:24*60*60},
+    callbacks:{
+      async jwt({token,user}) {if(user){token.sub=user.id;token.chainId=user.chainId}return token},
+      async session({session,token}) {session.address=token.sub;session.chainId=typeof token.chainId==='number'?token.chainId:undefined;return session},
     },
-    async session({ session, token }) {
-      ;(session as any).address = token.sub
-      ;(session as any).chainId = token.chainId
-      return session
-    },
-  },
+    logger:{error(){console.error('auth_error')},warn(code){console.warn('auth_warning',code)},debug(){}},
+  }
 }
-

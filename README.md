@@ -4,7 +4,7 @@ w3rk.net is a decentralized TaskRabbit-style platform built on Base. Workers can
 
 ## Current State
 
-MVP Next.js frontend with basic functionality deployed on Vercel:
+MVP App Router frontend being migrated from Vercel to Cloudflare:
 - Jobs browsing page
 - Job posting interface  
 - Profile/about pages
@@ -43,17 +43,11 @@ npm run dev
 
 Open http://localhost:3000 to view the application.
 
-## Deploy to Vercel
+## Deploy to Cloudflare
 
-1. Push this repo to GitHub
-2. In Vercel, click **New Project → Import Git Repository** and select your repo
-3. Framework preset: **Next.js**. Leave defaults
-4. Deploy. Every push creates a new preview; the default branch becomes **Production**
+This migration uses native Cloudflare Git builds, Workers and D1. Pushes to the configured production branch build and publish in Cloudflare. No Cloudflare credential is stored in GitHub. Vercel Git deployments are disabled; the previous deployment remains recovery evidence.
 
-For more details:
-- [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs)
-- [Git deploys](https://vercel.com/docs/git)
-- [Custom domains](https://vercel.com/docs/domains/working-with-domains/add-a-domain)
+Read [migration and recovery instructions](docs/cloudflare-migration.md) before provisioning or publishing. The checked-in D1 ID is deliberately a placeholder and writes default to disabled. A stable runtime authentication secret, approved public Thirdweb client ID, verified data import and native build are required before cutover.
 
 ## Health Check
 

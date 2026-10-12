@@ -8,9 +8,9 @@ test.describe('Vercel Deployment Compatibility', () => {
     await expect(page.locator('body')).toBeVisible();
     
     // Check console for any environment variable warnings
-    const warnings = [];
+    const warnings: string[] = [];
     page.on('console', msg => {
-      if (msg.type() === 'warn' && msg.text().includes('environment')) {
+      if (msg.type() === 'warning' && msg.text().includes('environment')) {
         warnings.push(msg.text());
       }
     });
@@ -90,7 +90,7 @@ test.describe('Vercel Deployment Compatibility', () => {
     
     // Test that the app works in environments similar to Vercel Edge Runtime
     // Check that no Node.js specific APIs are used in client-side code
-    const errors = [];
+    const errors: string[] = [];
     page.on('console', msg => {
       if (msg.type() === 'error') {
         errors.push(msg.text());

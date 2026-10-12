@@ -1,113 +1,21 @@
 'use client'
-
-import { useAddress, useSigner } from "thirdweb/react";
-import { useEffect, useState } from 'react'
-import { initializeXMTP, getXMTPClient, disconnectXMTP } from '../lib/xmtp'
-import type { Signer, Identifier } from '@xmtp/browser-sdk'
-import { hexToBytes } from 'viem'
-
-/**
- * React hook for XMTP integration with Thirdweb wallet
- * Automatically initializes XMTP client when user is connected
- */
-export function useXMTP() {
-  const address = useAddress()
-  const signer = useSigner()
-  const [isXMTPReady, setIsXMTPReady] = useState(false)
-  const [xmtpError, setXMTPError] = useState<string | null>(null)
-  const [isInitializing, setIsInitializing] = useState(false)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function setupXMTP() {
-      if (!address || !signer) {
-        if (getXMTPClient()) {
-          disconnectXMTP()
-          setIsXMTPReady(false)
-        }
-        return
-      }
-
-      // Check if XMTP is already initialized for this wallet
-      if (getXMTPClient()) {
-        setIsXMTPReady(true)
-        return
-      }
-
-      // Don't initialize multiple times
-      if (isInitializing) return
-      
-      setIsInitializing(true)
-      
-      try {
-        setXMTPError(null)
-        console.log('🔄 Initializing XMTP client for:', address)
-
-        const accountIdentifier: Identifier = {
-          identifier: address,
-          identifierKind: "Ethereum",
-        }
-
-        const signMessage = async (message: string): Promise<Uint8Array> => {
-          try {
-            const signature = await signer.signMessage(message)
-            return hexToBytes(signature)
-          } catch (error) {
-            console.error('❌ Failed to create XMTP signature:', error)
-            throw error
-          }
-        }
-
-        const xmtpSigner: Signer = {
-          type: 'EOA',
-          getIdentifier: () => accountIdentifier,
-          signMessage,
-        }
-
-        // Initialize XMTP client with the proper signer
-        const client = await initializeXMTP(xmtpSigner)
-        
-        if (mounted) {
-          setIsXMTPReady(!!client)
-          if (client) {
-            console.log('✅ XMTP client ready for cross-app messaging')
-          } else {
-            setXMTPError('XMTP signing integration needed - messaging will use database only')
-          }
-        }
-      } catch (error) {
-        console.error('❌ XMTP setup error:', error)
-        if (mounted) {
-          setXMTPError('XMTP requires wallet signing setup - using database messaging for now')
-          setIsXMTPReady(false)
-        }
-      } finally {
-        if (mounted) {
-          setIsInitializing(false)
-        }
-      }
-    }
-
-    setupXMTP()
-
-    return () => {
-      mounted = false
-    }
-  }, [address, signer, isInitializing])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      disconnectXMTP()
-    }
-  }, [])
-
-  return {
-    isXMTPReady,
-    xmtpError,
-    isInitializing,
-    xmtpClient: getXMTPClient(),
-    userAddress: address || null
-  }
+import {useActiveAccount} from 'thirdweb/react'
+import {useEffect,useState} from 'react'
+import {useSession} from 'next-auth/react'
+import {hexToBytes} from 'viem'
+import {type Signer} from '@xmtp/browser-sdk'
+import {initializeXMTP,disconnectXMTP,getXMTPClient} from '../lib/xmtp'
+export function useXMTP(){
+  const account=useActiveAccount(),{data:session}=useSession()
+  const [isXMTPReady,setReady]=useState(false),[xmtpError,setError]=useState<string|null>(null),[isInitializing,setInitializing]=useState(false)
+  useEffect(()=>{
+    let active=true
+    setReady(false);setError(null)
+    if(!account||account.address.toLowerCase()!==session?.address?.toLowerCase()){disconnectXMTP();return}
+    setInitializing(true)
+    const signer:Signer={type:'EOA',getIdentifier:()=>({identifier:account.address,identifierKind:'Ethereum' as const}),signMessage:async message=>hexToBytes(await account.signMessage({message}))}
+    void initializeXMTP(signer).then(c=>{if(active){setReady(!!c);if(!c)setError('XMTP unavailable; database messaging remains available.')}}).finally(()=>{if(active)setInitializing(false)})
+    return()=>{active=false;disconnectXMTP()}
+  },[account,session?.address])
+  return{isXMTPReady,xmtpError,isInitializing,xmtpClient:getXMTPClient(),userAddress:account?.address??null}
 }

@@ -65,7 +65,7 @@ test.describe('Build and Deployment Compatibility', () => {
       await expect(page.locator('body')).toBeVisible();
       
       // Check no critical errors in console
-      const errors = [];
+      const errors: string[] = [];
       page.on('console', msg => {
         if (msg.type() === 'error') {
           errors.push(msg.text());

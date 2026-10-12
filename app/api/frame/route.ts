@@ -11,10 +11,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Handle Farcaster frame POST requests
-    const body = await req.json()
-    
-    // Log frame interactions for debugging
-    console.log('Farcaster frame interaction:', body)
+    await req.json()
     
     // Return frame response that redirects to the main app
     return NextResponse.json({
@@ -31,7 +28,7 @@ export async function POST(req: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Frame POST error:', error)
+    console.error('frame_post_failed')
     return NextResponse.json(
       { error: 'Frame processing failed' },
       { status: 500 }

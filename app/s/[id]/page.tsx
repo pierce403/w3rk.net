@@ -27,7 +27,7 @@ export default function ServicePage() {
     try {
       const response = await fetch('/api/services')
       if (response.ok) {
-        const services = await response.json()
+        const services = await response.json() as Service[]
         // Get service by index (1-based numbering)
         const selectedService = services[serviceNumber - 1]
         setService(selectedService || null)

@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "w3rk-net",
+  "main": "vinext/server/app-router-entry",
+  "compatibility_date": "2026-10-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "secrets": { "required": ["NEXTAUTH_SECRET"] },
+  "preview_urls": false,
+  "assets": { "not_found_handling": "none" },
+  "d1_databases": [{
+    "binding": "DB", "database_name": "w3rk-net",
+    "database_id": "00000000-0000-0000-0000-000000000000",
+    "migrations_dir": "migrations"
+  }],
+  "vars": {
+    "NEXTAUTH_URL": "https://w3rk.net",
+    "AUTH_ALLOWED_CHAIN_IDS": "8453,84532,1",
+    "READ_ONLY": "true"
+  },
+  "observability": { "enabled": true, "traces": { "enabled": true } }
+}

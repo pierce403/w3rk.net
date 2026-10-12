@@ -56,7 +56,7 @@ export default function ChatPage() {
     try {
       const response = await fetch('/api/chat/rooms')
       if (response.ok) {
-        const rooms = await response.json()
+        const rooms = await response.json() as ChatRoom[]
         setChatRooms(rooms)
       }
     } catch (error) {

@@ -33,7 +33,7 @@ export default function UserSkills({ userAddress, displayName }: UserSkillsProps
     try {
       const response = await fetch(`/api/skills?user=${userAddress}`)
       if (response.ok) {
-        const userSkills = await response.json()
+        const userSkills = await response.json() as Skill[]
         setSkills(userSkills)
       }
     } catch (error) {
@@ -63,7 +63,7 @@ export default function UserSkills({ userAddress, displayName }: UserSkillsProps
         // Refresh skills to show updated endorsement count
         await fetchUserSkills()
       } else {
-        const error = await response.json()
+        const error = await response.json() as {error:string}
         if (error.error === 'Already endorsed') {
           alert('You have already endorsed this skill!')
         } else {

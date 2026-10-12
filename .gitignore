@@ -16,3 +16,15 @@ yarn-error.log*
 .vercel
 
 /lib/generated/prisma
+
+/dist/
+/.vinext/
+/.wrangler/
+/.agents/
+/.codex/
+skills-lock.json
+.dev.vars*
+/private-data/
+*.tsbuildinfo
+/playwright-report/
+/test-results/

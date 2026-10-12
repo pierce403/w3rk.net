@@ -27,7 +27,7 @@ export default function JobPage() {
     try {
       const response = await fetch('/api/jobs')
       if (response.ok) {
-        const jobs = await response.json()
+        const jobs = await response.json() as Job[]
         // Get job by index (1-based numbering)
         const selectedJob = jobs[jobNumber - 1]
         setJob(selectedJob || null)

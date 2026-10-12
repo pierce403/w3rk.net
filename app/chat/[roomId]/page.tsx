@@ -67,19 +67,22 @@ export default function ChatRoomPage() {
     }
   }, [session, status, roomId])
 
-  // Set up XMTP message listener when ready
+  // Network messages remain client-side; a received message is never POSTed as this user.
   useEffect(() => {
-    if (isXMTPReady && chatRoom && session?.address) {
-      // For now, focus on 1:1 conversations - get the other participant
-      const otherParticipants = chatRoom.participants
-        .map(p => p.user.address)
-        .filter(addr => addr !== session.address)
-      
-      if (otherParticipants.length === 1) {
-        setupXMTPListener(otherParticipants[0])
-      }
-    }
-  }, [isXMTPReady, chatRoom, session?.address])
+    if(!isXMTPReady||!chatRoom||!session?.address)return
+    const other=chatRoom.participants.map(p=>p.user.address).filter(a=>a.toLowerCase()!==session.address!.toLowerCase())
+    if(other.length!==1)return
+    let active=true,stop:undefined|(()=>void)
+    void listenForXMTPMessages(other[0],message=>{
+      if(!active||!message.senderAddress)return
+      if(!chatRoom.participants.some(p=>p.user.address.toLowerCase()===message.senderAddress!.toLowerCase()))return
+      setMessages(prev=>prev.some(m=>m.xmtpId===message.xmtpId)?prev:[...prev,{
+        id:message.id,content:message.content,createdAt:message.sentAt.toISOString(),xmtpId:message.xmtpId,
+        sender:{address:message.senderAddress!,displayName:message.senderAddress!.slice(0,6)+'...'+message.senderAddress!.slice(-4)}
+      }])
+    }).then(cleanup=>{if(active)stop=cleanup;else cleanup()})
+    return()=>{active=false;stop?.()}
+  },[isXMTPReady,chatRoom,session?.address])
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -90,7 +93,7 @@ export default function ChatRoomPage() {
     try {
       const response = await fetch('/api/chat/rooms')
       if (response.ok) {
-        const rooms = await response.json()
+        const rooms = await response.json() as ChatRoom[]
         const room = rooms.find((r: ChatRoom) => r.id === roomId)
         setChatRoom(room || null)
       }
@@ -103,56 +106,13 @@ export default function ChatRoomPage() {
     try {
       const response = await fetch(`/api/chat/rooms/${roomId}/messages`)
       if (response.ok) {
-        const msgs = await response.json()
+        const msgs = await response.json() as ChatMessage[]
         setMessages(msgs)
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  // Set up XMTP message listener for real-time cross-app messaging
-  const setupXMTPListener = async (participantAddress: string) => {
-    try {
-      console.log('👂 Setting up XMTP listener for:', participantAddress)
-      
-      await listenForXMTPMessages(participantAddress, (xmtpMessage) => {
-        // Add XMTP message to local state if not already present
-        setMessages(prev => {
-          const exists = prev.some(m => m.xmtpId === xmtpMessage.xmtpId)
-          if (exists) return prev
-          
-          // Convert XMTP message format to our message format
-          const newMsg: ChatMessage = {
-            id: xmtpMessage.id,
-            content: xmtpMessage.content,
-            createdAt: xmtpMessage.sentAt.toISOString(),
-            xmtpId: xmtpMessage.xmtpId,
-            sender: {
-              address: xmtpMessage.senderAddress,
-              displayName: `${xmtpMessage.senderAddress.slice(0, 6)}...${xmtpMessage.senderAddress.slice(-4)}`,
-              ensName: undefined,
-              baseName: undefined
-            }
-          }
-          
-          return [...prev, newMsg]
-        })
-        
-        // Also store in database for persistence
-        fetch(`/api/chat/rooms/${roomId}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: xmtpMessage.content,
-            xmtpId: xmtpMessage.xmtpId
-          })
-        }).catch(error => console.error('Failed to store XMTP message in database:', error))
-      })
-    } catch (error) {
-      console.error('Error setting up XMTP listener:', error)
     }
   }
 
@@ -170,7 +130,7 @@ export default function ChatRoomPage() {
       if (isXMTPReady && chatRoom) {
         const otherParticipants = chatRoom.participants
           .map(p => p.user.address)
-          .filter(addr => addr !== session?.address)
+          .filter(addr => addr.toLowerCase() !== session?.address?.toLowerCase())
         
         if (otherParticipants.length === 1) {
           console.log('📤 Sending message via XMTP...')
@@ -197,8 +157,8 @@ export default function ChatRoomPage() {
       })
 
       if (response.ok) {
-        const message = await response.json()
-        setMessages(prev => [...prev, message])
+        const message = await response.json() as ChatMessage
+        setMessages(prev => prev.some(m => m.id===message.id || (message.xmtpId && m.xmtpId===message.xmtpId)) ? prev.map(m=>message.xmtpId&&m.xmtpId===message.xmtpId?message:m) : [...prev, message])
         setNewMessage('')
         
         const method = xmtpResult?.success ? 'XMTP + Database' : 'Database only'
@@ -218,7 +178,7 @@ export default function ChatRoomPage() {
     }
   }
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || (status === 'authenticated' && loading)) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
   }
 
@@ -296,7 +256,7 @@ export default function ChatRoomPage() {
           </div>
         ) : (
           messages.map((message) => {
-            const isMyMessage = message.sender.address === session.address
+            const isMyMessage = message.sender.address.toLowerCase() === session.address!.toLowerCase()
             return (
               <div
                 key={message.id}

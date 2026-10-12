@@ -24,7 +24,7 @@ export default function Jobs() {
     try {
       const response = await fetch('/api/jobs')
       if (response.ok) {
-        const jobs = await response.json()
+        const jobs = await response.json() as Job[]
         setJobs(jobs)
       }
     } catch (error) {
