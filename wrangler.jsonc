@@ -7,6 +7,9 @@
   "workers_dev": true,
   "secrets": { "required": ["NEXTAUTH_SECRET"] },
   "preview_urls": false,
+  "routes": [
+    { "pattern": "w3rk.net/*", "zone_name": "w3rk.net" }
+  ],
   "assets": { "not_found_handling": "none" },
   "d1_databases": [{
     "binding": "DB", "database_name": "w3rk-net",

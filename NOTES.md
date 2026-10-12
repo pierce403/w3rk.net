@@ -58,3 +58,24 @@
   subprocess and local workerd startup; the same checks passed outside that
   restriction. No dependencies, provider/auth behavior, production data, secrets,
   routes or hosting changed, and no publication was performed in this subtask.
+
+
+## 2026-10-12 final source transfer and read-only route publication
+
+The owner confirmed staging wallet sign-in/out and explicitly approved temporary
+W3RK-only verification. Maintenancee986f59 is promoted and the project-wide Vercel
+method freeze covers every retained deployment/alias;224authenticated denial
+checks passed, and all temporary keys are revoked. Consistent final source exports
+match exactly:5users,1job,2services,1skill,1endorsement, no original chat tables.
+Production D1 import and full eight-table readback preserve every field/ID/link,
+canonical SHA256cc8597a3760cca9ec94e343d6996462434b05549c42453fc2d40acb67797865c.
+Worker-host reads match public source fields. READ_ONLY remains true while the
+exact w3rk.net/* route is published and custom DNS/TLS/browser reads are checked.
+No application writes have been enabled. Vercel original data/versions are retained.
+
+Hosted recovery into w3rk_recovery_20261012_a and actual Prisma6 readback passed.
+An unpromoted production-environment read-only recovery deployment also serves the
+synthetic room/participant/message from that namespace. Its legacy read header was
+used only on that protected rehearsal copy; Cloudflare unsigned headers stay
+rejected. Source credentials were never placed in preview or Git. Private receipts
+and recovery exports remain with the migration coordinator.
