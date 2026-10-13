@@ -40,7 +40,7 @@
     "vinext": "1.1.0"
   },
   "devDependencies": {
-    "@babel/core": "7.29.0",
+    "@babel/core": "7.29.7",
     "@cloudflare/vite-plugin": "1.63.1",
     "@electric-sql/pglite": "0.5.9",
     "@openzeppelin/contracts": "5.4.0",
@@ -54,7 +54,6 @@
     "miniflare": "5.20261006.1-alpha",
     "next": "16.3.8",
     "pg": "8.16.3",
-    "truffle-flattener": "1.6.0",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
     "vite": "8.3.4",
@@ -65,5 +64,16 @@
     "node": ">=22.12 <23",
     "npm": "10.9.4"
   },
-  "packageManager": "npm@10.9.4"
+  "packageManager": "npm@10.9.4",
+  "overrides": {
+    "fflate": "0.7.5",
+    "ws": "8.21.0",
+    "jayson": {
+      "ws": "7.5.13"
+    },
+    "@walletconnect/jsonrpc-ws-connection": {
+      "ws": "7.5.13"
+    },
+    "@xmtp/proto": "3.90.0"
+  }
 }
