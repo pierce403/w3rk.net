@@ -1,9 +1,9 @@
 import {writeFile} from 'node:fs/promises'
 // Only immutable/public assets are cacheable. Navigations and APIs always use the network.
-const sw=`const CACHE='w3rk-public-v2';
+const sw=`const CACHE='w3rk-public-v3';
 self.addEventListener('install',event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
-  for(const name of await caches.keys())if(name==='w3rk-cache'||name.startsWith('workbox-')||(name.startsWith('w3rk-public-')&&name!==CACHE))await caches.delete(name);
+  for(const name of await caches.keys())if(name==='start-url'||name==='w3rk-cache'||name.startsWith('workbox-')||(name.startsWith('w3rk-public-')&&name!==CACHE))await caches.delete(name);
   await self.clients.claim();
 })()));
 self.addEventListener('fetch',event=>{

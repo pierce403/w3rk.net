@@ -90,3 +90,12 @@ READ_ONLYfalse is now released through the next native main build; source Vercel
 writers stay blocked. No synthetic content is added to production. After this
 release, rollback requires freezing Cloudflare and reverse-reconciling accepted
 changes into a fresh recovery namespace before restoring any writable origin.
+
+
+Final PWA upgrade review found retained61c58ae names both start-url and w3rk-cache.
+The earlier cleanup omitted start-url. Public cache versionv3 now removes both,
+workbox caches and obsolete w3rk-public versions, while preserving unrelated
+caches. API/private/navigation requests remain network-only. The existing VM
+activation test and real-browser fixture now include that actual legacy name.
+All48unit cases, typecheck and full build pass. This changes no wallet auth or
+repository/data semantics; source Vercel writers stay frozen and records retained.
