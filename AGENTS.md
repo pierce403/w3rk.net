@@ -13,3 +13,7 @@ Read README.md, NOTES.md and docs/cloudflare-migration.md before deployment/data
   tables. Unexpected source tables or column changes must stop export, not become
   implicit empty arrays. Neither export mode freezes writers or performs import.
 - Keep all changes scoped and preserve current source drift. Never force-push or reset another checkout.
+
+## CI runner compatibility
+
+Worker validation pins `ubuntu-24.04`: the locked Playwright 1.55.1 cannot install Chromium on Ubuntu 26.04, which `ubuntu-latest` selected on 2026-11-17. Keep the full browser/auth smoke gate enabled; upgrade Playwright with compatibility validation before changing the runner image.
