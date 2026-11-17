@@ -67,3 +67,5 @@ Original project code and documentation are licensed under the [Apache License, 
 Earlier MIT grants remain valid; the previous license text is preserved in [LICENSE-MIT](LICENSE-MIT).
 
 The flattened OpenZeppelin-derived `contracts/W3rkToken_v5_flat.sol` retains its MIT license and is excluded from the Apache-2.0 grant.
+
+Solidity sources retain their existing file-level SPDX identifiers, including MIT-licensed contracts and any UNLICENSED scaffold fixtures. Those files are excluded from the repository-wide Apache-2.0 grant. Their source bytes are preserved to avoid changing compiler metadata or historical verification artifacts.
