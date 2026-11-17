@@ -9,7 +9,8 @@ permissions:
 jobs:
   validate:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 supports Ubuntu 24.04, not the moving latest image.
+    runs-on: ubuntu-24.04
     env:
       WRANGLER_SEND_METRICS: 'false'
     steps:
