@@ -60,3 +60,10 @@ This project is open source. See LICENSE file for details.
 ## Contributing
 
 We welcome contributions! Please feel free to submit issues and pull requests. For major changes, please open an issue first to discuss what you would like to change.
+## Licensing scope
+
+Original project code and documentation are licensed under the [Apache License, Version 2.0](LICENSE). Third-party dependencies, vendored code, quoted material, data, fonts, media, and other third-party assets retain their respective licenses and rights; this grant does not relicense them. Existing license notices and attribution must be preserved.
+
+Earlier MIT grants remain valid; the previous license text is preserved in [LICENSE-MIT](LICENSE-MIT).
+
+The flattened OpenZeppelin-derived `contracts/W3rkToken_v5_flat.sol` retains its MIT license and is excluded from the Apache-2.0 grant.
